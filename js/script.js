@@ -71,6 +71,9 @@ var FPS = 30;
       if (arrayofchannelopen.length == arrayofrunning.length  &&  arrayofchannelopen[i] == 1){
      arrayofdatachannels[i].send(id + "?" + ball.pos.x + ":" + ball.pos.y + ";");
      }
+	 if(arrayofballs.length>0){
+		 console.log(arrayofballs[0].pos.x);
+	 }
    }
 
    updateVolumes();

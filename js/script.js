@@ -308,12 +308,15 @@ var initiateWebRTCState = function() {
   arrayofdatachannels.push(arrayofpeerconnections[arrayofpeerconnections.length - 1].createDataChannel('myDataChannel'));
   arrayofdatachannels[arrayofdatachannels.length - 1].onopen = handleDataChannelOpen;
 
-  var video = document.createElement("video");
-  video.autoplay = true;
-  document.body.appendChild(video);
-  arrayofvideos.push(video);
 
-  arrayofpeerconnections[arrayofpeerconnections.length - 1].onaddstream = (event => video.srcObject = event.stream);
+
+  arrayofpeerconnections[arrayofpeerconnections.length - 1].onaddstream = function (event) {
+    var video = document.createElement("video");
+    video.autoplay = true;
+    document.body.appendChild(video);
+    arrayofvideos.push(video);
+    video.srcObject = event.stream;
+  };
 
   navigator.mediaDevices.getUserMedia({audio:true, video:true})
   .then(stream => (initiator==id?arrayofpeerconnections[arrayofpeerconnections.length - 1].addStream(stream):console.log("not initiator"))    )

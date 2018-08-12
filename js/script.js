@@ -269,6 +269,14 @@ var handleICECandidate = function(event) {
 // This is called when the WebRTC sending data channel is offically 'open'
 handleDataChannelOpen = function() {
   arrayofchannelopen[arrayofchannelopen.length - 1] = 1;
+
+  if (arrayofchannelopen.length > 1 && arrayofchannelopen[arrayofchannelopen.length - 2] == 0) {   // if a channel is open but the previous channel is not open,
+    //scrape the previous one. This problem happens only with the offerer (initiator).
+    arrayofchannelopen.splice(arrayofchannelopen.length - 2, 1);
+    arrayofpeerconnections.splice(arrayofpeerconnections.length - 2, 1);
+    arrayofrunning.splice(arrayofrunning.length - 2, 1);
+  }
+
   connectedusers.push(remote);
   arrayofballs.push({
     pos: {x: 500,y: 300},

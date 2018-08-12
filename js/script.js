@@ -154,6 +154,13 @@ function startnow() {
 
   navigator.mediaDevices.getUserMedia({audio:true, video:true})
     .then(stream => yourVideo.srcObject = stream);
+
+    setInterval(function() {
+            animate();
+        gameBack();
+      }, 1000/FPS);
+
+
 /* WebRTC Demo
  * Allows two clients to connect via WebRTC with Data Channels
  * Uses Firebase as a signalling server
@@ -266,33 +273,6 @@ var handleICECandidate = function(event) {
  * the peer-to-peer data channels
  */
 
-// This is called when the WebRTC sending data channel is offically 'open'
-handleDataChannelOpen = function() {
-  arrayofchannelopen[arrayofchannelopen.length - 1] = 1;
-
-  if (arrayofchannelopen.length > 1 && arrayofchannelopen[arrayofchannelopen.length - 2] == 0) {   // if a channel is open but the previous channel is not open,
-    //scrape the previous one. This problem happens only with the offerer (initiator).
-    arrayofchannelopen.splice(arrayofchannelopen.length - 2, 1);
-    arrayofpeerconnections.splice(arrayofpeerconnections.length - 2, 1);
-    arrayofrunning.splice(arrayofrunning.length - 2, 1);
-  }
-
-  connectedusers.push(remote);
-  arrayofballs.push({
-    pos: {x: 500,y: 300},
-        direction: { x: 0, y: 0 },
-    speed: 5,
-        brake: 0.9, // smaller number stop faster, max 0.99999
-  });
-
-  setInterval(function() {
-          animate();
-      gameBack();
-    }, 1000/FPS);
-
-
-  sendAnnounceChannelMessage();
-};
 
 
 // Function to offer to start a WebRTC connection with a peer
@@ -313,8 +293,6 @@ var initiateWebRTCState = function() {
   arrayofpeerconnections.push(new RTCPeerConnection(servers));
   arrayofrunning.push(false);
   arrayofchannelopen.push(0);
-  arrayofdatachannels.push(arrayofpeerconnections[arrayofpeerconnections.length - 1].createDataChannel('myDataChannel'));
-  arrayofdatachannels[arrayofdatachannels.length - 1].onopen = handleDataChannelOpen;
 
 
 
@@ -324,6 +302,24 @@ var initiateWebRTCState = function() {
     document.body.appendChild(video);
     arrayofvideos.push(video);
     video.srcObject = event.stream;
+    connectedusers.push(remote);
+    arrayofballs.push({
+      pos: {x: 500,y: 300},
+          direction: { x: 0, y: 0 },
+      speed: 5,
+          brake: 0.9, // smaller number stop faster, max 0.99999
+    });
+    arrayofchannelopen[arrayofchannelopen.length - 1] = 1;
+
+    if (arrayofchannelopen.length > 1 && arrayofchannelopen[arrayofchannelopen.length - 2] == 0) {   // if a channel is open but the previous channel is not open,
+      //scrape the previous one. This problem happens only with the offerer (initiator).
+      arrayofchannelopen.splice(arrayofchannelopen.length - 2, 1);
+      arrayofpeerconnections.splice(arrayofpeerconnections.length - 2, 1);
+      arrayofrunning.splice(arrayofrunning.length - 2, 1);
+    }
+
+    sendAnnounceChannelMessage();
+
   };
 
   navigator.mediaDevices.getUserMedia({audio:true, video:true})

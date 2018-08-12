@@ -11,8 +11,8 @@ var config = {
     storageBucket: "testingwebrtc-d087c.appspot.com",
     messagingSenderId: "864357972075"
   };
-var fb = firebase.initializeApp(config);
 
+var fb = firebase.initializeApp(config);
 var database = firebase.database().ref();
 var yourVideo = document.getElementById("yourVideo");
 var friendsVideo = document.getElementById("friendsVideo");
@@ -20,31 +20,40 @@ var otherfriendsVideo = document.getElementById("otherfriendsVideo");
 var sender;
 var target;
 var initiator;
-
-
-
 var handleDataChannelOpen;
-
 var arrayofpeerconnections = [];
-//var arrayofmediapeerconnections = [];
 var arrayofdatachannels = [];
 var arrayofrunning = [];
 var arrayofchannelopen = [];
-
 var connectedusers = [];
 
 // Generate this browser a unique ID
 // On Firebase peers use this unique ID to address messages to each other
 // after they have found each other in the announcement channel
 var id = Math.random().toString().replace('.', '');
-//var sharedKey;       // Unique identifier for two clients to find each other
 var remote;          // ID of the remote peer -- set once they send an offer
 //-----------------------------------------------------------------
+
+var handleBallPosChannelMessage = function (message) {
+  //console.log("got position message from "+ message.val().id + " xpos " + message.val().xpos + "ypos " + message.val().ypos);
+   var theSender = message.val().id;
+   if(theSender != id && connectedusers != undefined  && connectedusers.length > 0) {
+   var PosInArray = connectedusers.indexOf(theSender);
+   if (PosInArray != -1){
+   arrayofballs[PosInArray].pos.x = message.val().xpos;
+   arrayofballs[PosInArray].pos.y = message.val().ypos;
+ }
+}
+};
+
+
+var ballPosChannel = database.child('positions');
+ballPosChannel.on('child_added', handleBallPosChannelMessage);
+
+
+
 var canvas = document.getElementById('game');
 var ctx = canvas.getContext('2d');
-
-var ballindex = 1;
-
 var arrayofballs = [];
 
 var ball = {
@@ -66,15 +75,12 @@ var FPS = 30;
 	  }
       ball.direction.x *= ball.brake;
       ball.direction.y *= ball.brake;
-      var i;
-      for (i=0; i < arrayofdatachannels.length ; i++){
-      if (arrayofchannelopen.length == arrayofrunning.length  &&  arrayofchannelopen[i] == 1){
-     arrayofdatachannels[i].send(id + "?" + ball.pos.x + ":" + ball.pos.y + ";");
-     }
-	 if(arrayofballs.length>0){
-		 console.log(arrayofballs[0].pos.x);
-	 }
-   }
+
+      ballPosChannel.push({id:id, xpos:ball.pos.x, ypos:ball.pos.y});
+
+      /*if(arrayofballs.length>0){
+   		 console.log(arrayofballs[0].pos.x);
+   	 }*/
 
    updateVolumes();
   }
@@ -145,7 +151,6 @@ var arrayofvideos = [];
 
 function startnow() {
 
-  var canconnect = false;
 
   navigator.mediaDevices.getUserMedia({audio:true, video:true})
     .then(stream => yourVideo.srcObject = stream);
@@ -168,7 +173,6 @@ function startnow() {
 var sendAnnounceChannelMessage = function() {
   announceChannel.remove(function() {
     announceChannel.push({
-      //sharedKey : sharedKey,
       id : id
     });
   });
@@ -178,10 +182,9 @@ var sendAnnounceChannelMessage = function() {
 
 var handleAnnounceChannelMessage = function(snapshot) {
   var message = snapshot.val();
-  if (message.id != id && (connectedusers.includes(message.id) == false)  /*&& message.sharedKey == sharedKey*/) {
+  if (message.id != id && (connectedusers.includes(message.id) == false)) {
     remote = message.id;
     initiateWebRTCState();
-    //connect();
     initiator = id;
   }
 };
@@ -241,26 +244,6 @@ var handleSignalChannelMessage = function(snapshot) {
   else if (type == 'candidate' && arrayofrunning[arrayofrunning.length - 1]) handleCandidateSignal(message);
 };
 
-/* == ICE Candidate Functions ==
- * ICE candidates are what will connect the two peers
- * Both peers must find a list of suitable candidates and exchange their list
- * We exchange this list over the signalling channel (Firebase)
- */
-
-// Add listener functions to ICE Candidate events
-/*var startSendingCandidates = function() {
-  //peerConnection.oniceconnectionstatechange = handleICEConnectionStateChange;
-  peerConnection.onicecandidate = handleICECandidate;
-};*/
-
-// This is how we determine when the WebRTC connection has ended
-// This is most likely because the other peer left the page
-/*var handleICEConnectionStateChange = function() {
-  if (peerConnection.iceConnectionState == 'disconnected') {
-    console.log('Client disconnected!');
-    sendAnnounceChannelMessage();
-  }
-};*/
 
 // Handle ICE Candidate events by sending them to our remote
 // Send the ICE Candidates via the signal channel
@@ -283,23 +266,6 @@ var handleICECandidate = function(event) {
  * the peer-to-peer data channels
  */
 
-// This is our receiving data channel event
-// We receive this channel when our peer opens a sending channel
-// We will bind to trigger a handler when an incoming message happens
-var handleDataChannel = function(event) {
-  event.channel.onmessage = handleDataChannelMessage;
-};
-
-// This is called on an incoming message from our peer
-// You probably want to overwrite this to do something more useful!
-var handleDataChannelMessage = function(event) {
-  var Str = event.data;
-  var theSender = Str.substring(0,Str.lastIndexOf("?"));
-  var positioninarray = connectedusers.indexOf(theSender);
-  arrayofballs[positioninarray].pos.x = Str.substring(Str.lastIndexOf("?")+1,Str.lastIndexOf(":"));
-  arrayofballs[positioninarray].pos.y = Str.substring(Str.lastIndexOf(":")+1,Str.lastIndexOf(";"));
-};
-
 // This is called when the WebRTC sending data channel is offically 'open'
 handleDataChannelOpen = function() {
   arrayofchannelopen[arrayofchannelopen.length - 1] = 1;
@@ -320,10 +286,6 @@ handleDataChannelOpen = function() {
   sendAnnounceChannelMessage();
 };
 
-// Called when the data channel has closed
-var handleDataChannelClosed = function() {
-  console.log('The data channel has been closed!');
-};
 
 // Function to offer to start a WebRTC connection with a peer
 var connect = function() {
@@ -337,22 +299,14 @@ var connect = function() {
   });
 };
 
-//var arrayofvideoelements = [];
+
 // Function to initiate the WebRTC peerconnection and dataChannel
 var initiateWebRTCState = function() {
   arrayofpeerconnections.push(new RTCPeerConnection(servers));
-
   arrayofrunning.push(false);
   arrayofchannelopen.push(0);
-  arrayofpeerconnections[arrayofpeerconnections.length - 1].ondatachannel = handleDataChannel;
-
-
   arrayofdatachannels.push(arrayofpeerconnections[arrayofpeerconnections.length - 1].createDataChannel('myDataChannel'));
-  arrayofdatachannels[arrayofdatachannels.length - 1].onmessage = handleDataChannelMessage;
   arrayofdatachannels[arrayofdatachannels.length - 1].onopen = handleDataChannelOpen;
-  arrayofdatachannels[arrayofdatachannels.length - 1].onclose = handleDataChannelClosed;
-
-
 
   var video = document.createElement("video");
   video.autoplay = true;
@@ -367,16 +321,11 @@ var initiateWebRTCState = function() {
 
 };
 
-// Unique identifier for two clients to use
-// They MUST share this to find each other
-// Each peer waits in the announcement channel to find its matching identifier
-// When it finds its matching identifier, it initiates a WebRTC offer with
-// that client. This unique identifier can be pretty much anything in practice.
-//sharedKey = prompt("Please enter shared identifier");
 var announceChannel = database.child('announce');
 announceChannel.on('child_added', handleAnnounceChannelMessage);
 var signalChannel = database.child('messages').child(id);
 signalChannel.on('child_added', handleSignalChannelMessage);
+
 
 
 // Send a message to the announcement channel

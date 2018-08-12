@@ -265,15 +265,6 @@ var handleICECandidate = function(event) {
   }
 };
 
-/* == Data Channel Functions ==
- * The WebRTC connection is established by the time these functions run
- * The hard part is over, and these are the functions we really want to use
- *
- * The functions below relate to sending and receiving WebRTC messages over
- * the peer-to-peer data channels
- */
-
-
 
 // Function to offer to start a WebRTC connection with a peer
 var connect = function() {
@@ -293,8 +284,6 @@ var initiateWebRTCState = function() {
   arrayofpeerconnections.push(new RTCPeerConnection(servers));
   arrayofrunning.push(false);
   arrayofchannelopen.push(0);
-
-
 
   arrayofpeerconnections[arrayofpeerconnections.length - 1].onaddstream = function (event) {
     var video = document.createElement("video");

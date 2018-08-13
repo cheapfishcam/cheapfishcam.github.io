@@ -37,7 +37,7 @@ var remote;          // ID of the remote peer -- set once they send an offer
 var handleBallPosChannelMessage = function (message) {
   //console.log("got position message from "+ message.val().id + " xpos " + message.val().xpos + "ypos " + message.val().ypos);
    var theSender = message.val().id;
-   if(theSender != id && connectedusers != undefined  && connectedusers.length > 0) {
+   if(theSender != id && connectedusers != undefined  && connectedusers.length > 0 && arrayofballs.length == connectedusers.length) {
    var PosInArray = connectedusers.indexOf(theSender);
    if (PosInArray != -1){
    arrayofballs[PosInArray].pos.x = message.val().xpos;
@@ -184,6 +184,8 @@ var sendAnnounceChannelMessage = function() {
 
 var handleAnnounceChannelMessage = function(snapshot) {
   var message = snapshot.val();
+  console.log("got announcement from " + message.id);
+  console.log(connectedusers);
   if (message.id != id && (connectedusers.includes(message.id) == false)) {
     remote = message.id;
     initiateWebRTCState();
@@ -229,6 +231,7 @@ var handleOfferSignal = function(message) {
 // Handle a WebRTC answer response to our offer we gave the remote client
 var handleAnswerSignal = function(message) {
   arrayofpeerconnections[arrayofpeerconnections.length - 1].setRemoteDescription(new RTCSessionDescription(message));
+  connectedusers.push(remote);
 };
 
 // Handle an ICE candidate notification from the remote client
@@ -265,9 +268,9 @@ var handleICECandidate = function(event) {
 
 // Function to offer to start a WebRTC connection with a peer
 var connect = function() {
+  arrayofrunning[arrayofrunning.length - 1] = true;
   console.log("in connect");
   console.log(arrayofrunning);
-  arrayofrunning[arrayofrunning.length - 1] = true;
   arrayofpeerconnections[arrayofpeerconnections.length - 1].onicecandidate = handleICECandidate;
   arrayofpeerconnections[arrayofpeerconnections.length - 1].createOffer(function(sessionDescription) {
     arrayofpeerconnections[arrayofpeerconnections.length - 1].setLocalDescription(sessionDescription);
@@ -290,7 +293,7 @@ var initiateWebRTCState = function() {
     document.body.appendChild(video);
     arrayofvideos.push(video);
     video.srcObject = event.stream;
-    connectedusers.push(remote);
+    if (initiator!=id) connectedusers.push(remote);
     arrayofballs.push({
       pos: {x: 500,y: 300},
           direction: { x: 0, y: 0 },

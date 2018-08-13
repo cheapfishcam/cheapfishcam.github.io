@@ -290,6 +290,7 @@ var initiateWebRTCState = function() {
 
   arrayofpeerconnections[arrayofpeerconnections.length - 1].onaddstream = function (event) {
     canvasColor = 'Blue';
+    console.log(event.stream);
     var video = document.createElement("video");
     video.autoplay = true;
     document.body.appendChild(video);

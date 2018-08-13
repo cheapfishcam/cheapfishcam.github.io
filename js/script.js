@@ -26,6 +26,7 @@ var arrayofdatachannels = [];
 var arrayofrunning = [];
 var arrayofchannelopen = [];
 var connectedusers = [];
+var canvasColor = 'Pink';
 
 // Generate this browser a unique ID
 // On Firebase peers use this unique ID to address messages to each other
@@ -97,7 +98,7 @@ var FPS = 30;
 
   // background code
   function gameBack() {
-    drawRect(0,0,canvas.width,canvas.height, 'Pink');
+    drawRect(0,0,canvas.width,canvas.height, canvasColor);
     //draw my ball
     colorCircle(ball.pos.x,ball.pos.y,10, 'Black');
     //draw the other balls

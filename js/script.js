@@ -178,11 +178,7 @@ function startnow() {
 
 // Announce our arrival to the announcement channel
 var sendAnnounceChannelMessage = function() {
-  announceChannel.remove(function() {
-    announceChannel.push({
-      id : id
-    });
-  });
+  announceChannel.remove(function() {announceChannel.push({id : id});});
 };
 
 // Handle an incoming message on the announcement channel

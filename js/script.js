@@ -289,6 +289,7 @@ var initiateWebRTCState = function() {
   arrayofchannelopen.push(0);
 
   arrayofpeerconnections[arrayofpeerconnections.length - 1].onaddstream = function (event) {
+    canvasColor = 'Blue';
     var video = document.createElement("video");
     video.autoplay = true;
     document.body.appendChild(video);

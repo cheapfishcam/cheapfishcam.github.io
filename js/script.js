@@ -86,9 +86,7 @@ var FPS = 30;
   }
 
 
-  function updateVolumes(){   //bug to be fixed here (actually it's a bug in the part where the video element is added):
-  // more than one video element sometimes get added, the index of the ball is not right then.
-//Also, we need to handle user disconnection.
+  function updateVolumes(){
       if (arrayofvideos.length == arrayofballs.length && arrayofballs.length > 0  && arrayofvideos.length > 0){
         var i;
       for (i=0;i<arrayofballs.length;i++) {
@@ -210,9 +208,11 @@ var sendSignalChannelMessage = function(message) {
 
 // Handle a WebRTC offer request from a remote client
 var handleOfferSignal = function(message) {
-  arrayofrunning[arrayofrunning.length - 1] = true;
+    console.log("in handleoffer");
+    console.log(arrayofrunning);
   remote = message.sender;
   initiateWebRTCState();
+  arrayofrunning[arrayofrunning.length - 1] = true;
   navigator.mediaDevices.getUserMedia({audio:true, video:true})
   .then(stream => arrayofpeerconnections[arrayofpeerconnections.length - 1].addStream(stream))
   .then(() => (arrayofpeerconnections[arrayofpeerconnections.length - 1].onicecandidate = handleICECandidate))
@@ -243,7 +243,7 @@ var handleSignalChannelMessage = function(snapshot) {
   var message = snapshot.val();
   var sender = message.sender;
   var type = message.type;
-  if (type == 'offer' && arrayofpeerconnections.length == arrayofchannelopen.length  && (arrayofchannelopen.length==0 || arrayofchannelopen[arrayofchannelopen.length - 1] == 1)) handleOfferSignal(message);
+  if (type == 'offer'  && (arrayofchannelopen.length==0 || arrayofchannelopen[arrayofchannelopen.length - 1] == 1)) handleOfferSignal(message);
   else if (type == 'answer') handleAnswerSignal(message);
   else if (type == 'candidate' && arrayofrunning[arrayofrunning.length - 1]) handleCandidateSignal(message);
 };
@@ -265,6 +265,8 @@ var handleICECandidate = function(event) {
 
 // Function to offer to start a WebRTC connection with a peer
 var connect = function() {
+  console.log("in connect");
+  console.log(arrayofrunning);
   arrayofrunning[arrayofrunning.length - 1] = true;
   arrayofpeerconnections[arrayofpeerconnections.length - 1].onicecandidate = handleICECandidate;
   arrayofpeerconnections[arrayofpeerconnections.length - 1].createOffer(function(sessionDescription) {
@@ -299,6 +301,10 @@ var initiateWebRTCState = function() {
 
     if (arrayofchannelopen.length > 1 && arrayofchannelopen[arrayofchannelopen.length - 2] == 0) {   // if a channel is open but the previous channel is not open,
       //scrape the previous one. This problem happens only with the offerer (initiator).
+      console.log("removing dead channel");
+      console.log(arrayofchannelopen);
+      console.log(connectedusers);
+      console.log(arrayofrunning);
       arrayofchannelopen.splice(arrayofchannelopen.length - 2, 1);
       arrayofpeerconnections.splice(arrayofpeerconnections.length - 2, 1);
       arrayofrunning.splice(arrayofrunning.length - 2, 1);

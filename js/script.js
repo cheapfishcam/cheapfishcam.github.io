@@ -26,7 +26,7 @@ var arrayofdatachannels = [];
 var arrayofrunning = [];
 var arrayofchannelopen = [];
 var connectedusers = [];
-var canvasColor = 'Pink';
+var canvasColor = 'white';
 
 // Generate this browser a unique ID
 // On Firebase peers use this unique ID to address messages to each other
@@ -289,7 +289,7 @@ var initiateWebRTCState = function() {
   arrayofchannelopen.push(0);
 
   arrayofpeerconnections[arrayofpeerconnections.length - 1].onaddstream = function (event) {
-    canvasColor = 'Blue';
+    canvasColor = 'Pink';
     console.log(event.stream);
     var video = document.createElement("video");
     video.autoplay = true;

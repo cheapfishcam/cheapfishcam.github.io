@@ -139,6 +139,12 @@ var FPS = 30;
   function xBall(offset) {
     ball.direction.x += offset;
   }
+
+
+  setInterval(function() {
+          animate();
+      gameBack();
+    }, 1000/FPS);
   //-------------------------------------------------------
 
 
@@ -154,11 +160,6 @@ function startnow() {
 
   navigator.mediaDevices.getUserMedia({audio:true, video:true})
     .then(stream => yourVideo.srcObject = stream);
-
-    setInterval(function() {
-            animate();
-        gameBack();
-      }, 1000/FPS);
 
 
 /* WebRTC Demo

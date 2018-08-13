@@ -148,7 +148,7 @@ var FPS = 30;
 
 
 //Create an account on Viagenie (http://numb.viagenie.ca/), and replace {'urls': 'turn:numb.viagenie.ca','credential': '13111994','username': 'bassemsafieldeen@gmail.com'} with the information from your account
-var servers = {'iceServers': [{'urls': 'stun:stun.services.mozilla.com'}, /*{'urls': 'stun:stun.l.google.com:19302'},*/ {'urls': 'turn:numb.viagenie.ca','credential': '13111994','username': 'bassemsafieldeen@gmail.com'}]};
+var servers = {'iceServers': [/*{'urls': 'stun:stun.services.mozilla.com'},*/ /*{'urls': 'stun:stun.l.google.com:19302'},*/ {'urls': 'turn:numb.viagenie.ca','credential': '13111994','username': 'bassemsafieldeen@gmail.com'}]};
 
 
 var arrayofvideos = [];

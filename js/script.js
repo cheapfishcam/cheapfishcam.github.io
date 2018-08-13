@@ -49,7 +49,7 @@ var handleBallPosChannelMessage = function (message) {
 
 
 var ballPosChannel = database.child('positions');
-ballPosChannel.on('child_added', handleBallPosChannelMessage);
+ballPosChannel.limitToLast(100).on('child_added', handleBallPosChannelMessage);
 
 
 
@@ -327,9 +327,9 @@ var initiateWebRTCState = function() {
 };
 
 var announceChannel = database.child('announce');
-announceChannel.on('child_added', handleAnnounceChannelMessage);
+announceChannel.limitToLast(100).on('child_added', handleAnnounceChannelMessage);
 var signalChannel = database.child('messages').child(id);
-signalChannel.on('child_added', handleSignalChannelMessage);
+signalChannel.limitToLast(100).on('child_added', handleSignalChannelMessage);
 
 
 

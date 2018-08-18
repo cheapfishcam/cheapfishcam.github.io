@@ -100,11 +100,11 @@ var FPS = 30;
   function gameBack() {
     drawRect(0,0,canvas.width,canvas.height, canvasColor);
     //draw my ball
-    colorCircle(ball.pos.x,ball.pos.y,10, 'Black');
+    colorCircle(ball.pos.x,ball.pos.y,10, 'Red');
     //draw the other balls
     var i;
     for (i = 0 ; i < arrayofballs.length ; i++){
-    colorCircle(arrayofballs[i].pos.x,arrayofballs[i].pos.y,10, 'Green');
+    colorCircle(arrayofballs[i].pos.x,arrayofballs[i].pos.y,10, 'Yellow');
   }
   }
   // Rectangle Code

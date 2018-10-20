@@ -62,16 +62,6 @@
              lng: position.coords.longitude
            };
 
-           map.setCenter(pos);
-
-         }, function() {});
-       }
-
-
-         // Construct the circle for each value in citymap.
-         // Note: We scale the area of the circle based on the population.
-         //for (var city in citymap) {
-           // Add the circle for this city to the map.
            var cityCircle = new google.maps.Circle({
              strokeColor: '#FF0000',
              strokeOpacity: 0.8,
@@ -82,6 +72,18 @@
              center: pos,
              radius: 10
            });
+
+           map.setCenter(pos);
+
+         }, function() {});
+       }
+
+
+         // Construct the circle for each value in citymap.
+         // Note: We scale the area of the circle based on the population.
+         //for (var city in citymap) {
+           // Add the circle for this city to the map.
+
          //}
        }
      </script>

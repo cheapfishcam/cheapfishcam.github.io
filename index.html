@@ -50,7 +50,7 @@
        function initMap() {
          // Create the map.
          var map = new google.maps.Map(document.getElementById('map'), {
-           zoom: 4,
+           zoom: 8,
            center: {lat: 0.000, lng: 0.000},
            mapTypeId: 'terrain'
          });
@@ -64,13 +64,13 @@
 
            var cityCircle = new google.maps.Circle({
              strokeColor: '#FF0000',
-             strokeOpacity: 0.8,
+             strokeOpacity: 1,
              strokeWeight: 2,
              fillColor: '#FF0000',
-             fillOpacity: 0.35,
+             fillOpacity: 1,
              map: map,
              center: pos,
-             radius: 1000
+             radius: 10000
            });
 
            map.setCenter(pos);

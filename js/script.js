@@ -59,9 +59,9 @@ var arrayofballs = [];
 
 var ball = {
   pos: {x: 500,y: 300},
-      direction: { x: 0, y: 0 },
+  direction: { x: 0, y: 0 },
   speed: 5,
-      brake: 0.9, // smaller number stop faster, max 0.99999
+  brake: 0.9, // smaller number stop faster, max 0.99999
 };
 
 
@@ -123,21 +123,23 @@ var FPS = 30;
   //Game Controls
   document.addEventListener('keydown', event => {
       if (event.keyCode === 37) { //Left
-        xBall(-1);
+        ball.direction.x += -1;
       } else if (event.keyCode === 39) { //Right
-        xBall(1);
+        ball.direction.x += 1;
       } else if (event.keyCode === 38) { //Up
-        yBall(-1);
+        ball.direction.y += -1;
       } else if (event.keyCode === 40) { //Down
-        yBall(1);
+        ball.direction.x += 1;
       }
   });
-  function yBall(offset) {
-    ball.direction.y += offset;
-  }
-  function xBall(offset) {
-    ball.direction.x += offset;
-  }
+
+
+//  function yBall(offset) {
+//    ball.direction.y += offset;
+//  }
+//  function xBall(offset) {
+//    ball.direction.x += offset;
+//  }
 
 
   setInterval(function() {

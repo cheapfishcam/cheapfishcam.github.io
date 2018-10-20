@@ -41,8 +41,8 @@ var handleBallPosChannelMessage = function (message) {
    if(theSender != id && connectedusers != undefined  && connectedusers.length > 0 && arrayofballs.length == connectedusers.length) {
    var PosInArray = connectedusers.indexOf(theSender);
    if (PosInArray != -1){
-   arrayofballs[PosInArray].pos.x = message.val().xpos;
-   arrayofballs[PosInArray].pos.y = message.val().ypos;
+   arrayofballs[PosInArray].pos.x = message.val().xpos;   //x will become long
+   arrayofballs[PosInArray].pos.y = message.val().ypos;   //y will become lat
  }
 }
 };
@@ -58,7 +58,7 @@ var ctx = canvas.getContext('2d');
 var arrayofballs = [];
 
 var ball = {
-  pos: {x: 500,y: 300},
+  pos: {x: 500,y: 300},    //x and y will become long and lat
   direction: { x: 0, y: 0 },
   speed: 5,
   brake: 0.9, // smaller number stop faster, max 0.99999
@@ -68,20 +68,15 @@ var ball = {
 var FPS = 30;
 
   function animate() {
-	  if (ball.pos.x > 0  && ball.pos.x < 1999 || ball.pos.x <0 && ball.direction.x >0  ||  ball.pos.x > 800 && ball.direction.x <0  ) {
+	  if (ball.pos.x > 0  && ball.pos.x < 1999 || ball.pos.x <0 && ball.direction.x >0  ||  ball.pos.x > 800 && ball.direction.x <0  ) {      // this if condition will not be needed anymore
       ball.pos.x += ball.direction.x * ball.speed;
 	  }
-	  if(ball.pos.y> 0  && ball.pos.y< 1999 || ball.pos.y <0 && ball.direction.y >0  ||  ball.pos.y > 1999 && ball.direction.y <0 ){
+	  if(ball.pos.y> 0  && ball.pos.y< 1999 || ball.pos.y <0 && ball.direction.y >0  ||  ball.pos.y > 1999 && ball.direction.y <0 ){         // this if condition will not be needed anymore
 	  ball.pos.y += ball.direction.y * ball.speed;
 	  }
-      ball.direction.x *= ball.brake;
-      ball.direction.y *= ball.brake;
-
-      ballPosChannel.push({id:id, xpos:ball.pos.x, ypos:ball.pos.y});
-
-      /*if(arrayofballs.length>0){
-   		 console.log(arrayofballs[0].pos.x);
-   	 }*/
+    ball.direction.x *= ball.brake;
+    ball.direction.y *= ball.brake;
+    ballPosChannel.push({id:id, xpos:ball.pos.x, ypos:ball.pos.y});
 
    updateVolumes();
   }
@@ -132,14 +127,6 @@ var FPS = 30;
         ball.direction.y += 1;
       }
   });
-
-
-//  function yBall(offset) {
-//    ball.direction.y += offset;
-//  }
-//  function xBall(offset) {
-//    ball.direction.x += offset;
-//  }
 
 
   setInterval(function() {

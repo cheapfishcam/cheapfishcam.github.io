@@ -129,7 +129,7 @@ var FPS = 30;
       } else if (event.keyCode === 38) { //Up
         ball.direction.y += -1;
       } else if (event.keyCode === 40) { //Down
-        ball.direction.x += 1;
+        ball.direction.y += 1;
       }
   });
 

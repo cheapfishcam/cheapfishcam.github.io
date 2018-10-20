@@ -1,17 +1,24 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Circles</title>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
   </head>
-  <body onload="startnow();">
-    <video id="yourVideo" autoplay muted playsinline></video>
-    <br />
-
-    <canvas id="game" width=2000 height=2000></canvas>
-    <script src="https://www.gstatic.com/firebasejs/5.3.0/firebase.js"></script>
-    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-
+  <body>
     <div id="map"></div>
     <script>
       // This example creates circles on the map, representing populations in North
@@ -63,13 +70,7 @@
       }
     </script>
     <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBBuXM24F1HGyd80MVbtugkjddFJE2hn04&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCymOh_cE-oA2jZo9PeruW1jacINPCxshQ&callback=initMap">
     </script>
-
-
-
-
-
-    <script src="js/script.js"></script>
   </body>
 </html>

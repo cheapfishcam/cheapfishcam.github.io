@@ -28,8 +28,8 @@ var arrayofchannelopen = [];
 var connectedusers = [];
 var canvasColor = 'white';
 var mappos;
-var map = 0;
-var newcirc = 0;
+var map;
+//var newcirc = 0;
 // Generate this browser a unique ID
 // On Firebase peers use this unique ID to address messages to each other
 // after they have found each other in the announcement channel
@@ -134,7 +134,7 @@ var FPS = 30;
 
 var circles = [];
   setInterval(function() {
-      if (map != 0 && newcirc!=0){
+      if (map && mappos){
       mappos.lng += ball.direction.x * 0.15
       mappos.lat += -ball.direction.y * 0.15
       map.setCenter(mappos);
@@ -158,7 +158,7 @@ var circles = [];
     }, 1000/FPS);
 
     setInterval(function() {
-        if (map != 0 && circles[1]){
+        if (map && circles[1]){
           while(circles[1]){circles.pop().setMap(null);}
 }
 }, 2000/FPS);

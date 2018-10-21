@@ -141,7 +141,7 @@ var FPS = 30;
 var servers = {'iceServers': [{'urls': 'stun:stun.services.mozilla.com'}, {'urls': 'stun:stun.l.google.com:19302'}, {'urls': 'turn:numb.viagenie.ca','credential': 'beaver','username': 'webrtc.websitebeaver@gmail.com'}]};
 
 var arrayofvideos = [];
-
+var pos;
 function initMap() {
   // Create the map.
   var map = new google.maps.Map(document.getElementById('map'), {
@@ -152,7 +152,7 @@ function initMap() {
 
   if (navigator.geolocation) {
   navigator.geolocation.getCurrentPosition(function(position) {
-    var pos = {
+    pos = {
       lat: position.coords.latitude,
       lng: position.coords.longitude
     };
@@ -178,7 +178,7 @@ function initMap() {
 
 function startnow() {
 
-
+  console.log('pos');
   navigator.mediaDevices.getUserMedia({audio:false, video:true})
     .then(stream => yourVideo.srcObject = stream);
 

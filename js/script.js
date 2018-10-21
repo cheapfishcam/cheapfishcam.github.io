@@ -148,17 +148,15 @@ var FPS = 30;
         map: map,
         center: mappos,
         radius: 10000
-      })
+      });
+
+      newcirc.setMap(null);
     }
       animate();
       gameBack();
     }, 1000/FPS);
 
-    setInterval(function() {
-        if (map != 0 && newcirc!=0){
-          newcirc.setMap(null);
-}
-}, 2000/FPS);
+
   //-------------------------------------------------------
 
 

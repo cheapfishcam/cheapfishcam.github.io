@@ -161,7 +161,7 @@ var circles = [];
         if (map != 0 && circles[1]){
           while(circles[1]){circles.pop().setMap(null);}
 }
-      }, 1000/FPS);
+}, 2000/FPS);
   //-------------------------------------------------------
 
 

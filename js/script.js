@@ -142,9 +142,10 @@ var servers = {'iceServers': [{'urls': 'stun:stun.services.mozilla.com'}, {'urls
 
 var arrayofvideos = [];
 var pos;
+var map;
 function initMap() {
   // Create the map.
-  var map = new google.maps.Map(document.getElementById('map'), {
+  map = new google.maps.Map(document.getElementById('map'), {
     zoom: 8,
     center: {lat: 0.000, lng: 0.000},
     mapTypeId: 'roadmap'

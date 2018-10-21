@@ -96,7 +96,7 @@ var FPS = 30;
       if (arrayofvideos.length == arrayofballs.length && arrayofballs.length > 0  && arrayofvideos.length > 0){
         var i;
       for (i=0;i<arrayofballs.length;i++) {
-         arrayofvideos[i].volume=1/Math.max(1, 1 * Math.sqrt(Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2) + Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2)));
+         arrayofvideos[i].volume=1/Math.max(1, 100 * Math.sqrt(Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2) + Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2)));
   }
     }
   }

@@ -132,13 +132,13 @@ var FPS = 30;
       }
   });
 
-var oldcirc
+var oldcirc;
   setInterval(function() {
       if (map != 0 && newcirc!=0){
       mappos.lng += ball.direction.x * 0.15
       mappos.lat += -ball.direction.y * 0.15
       map.setCenter(mappos);
-      oldcirc = newcirc;
+      oldcirc = $.extend( true, {}, newcirc );
       newcirc = new google.maps.Circle({
         strokeColor: '#FF0000',
         strokeOpacity: 1,

@@ -132,14 +132,14 @@ var FPS = 30;
       }
   });
 
-
+var circles = [];
   setInterval(function() {
       if (map != 0 && newcirc!=0){
       mappos.lng += ball.direction.x * 0.15
       mappos.lat += -ball.direction.y * 0.15
       map.setCenter(mappos);
 
-      newcirc = new google.maps.Circle({
+      circles.push( new google.maps.Circle({
         strokeColor: '#FF0000',
         strokeOpacity: 1,
         strokeWeight: 2,
@@ -148,15 +148,20 @@ var FPS = 30;
         map: map,
         center: mappos,
         radius: 10000
-      });
+      })
+    );
 
-      newcirc.setMap(null);
+
     }
       animate();
       gameBack();
     }, 1000/FPS);
 
-
+    setInterval(function() {
+        if (map != 0 && circles[1]){
+          while(circles[1]){circles.pop().setMap(null);}
+}
+      }, 1000/FPS);
   //-------------------------------------------------------
 
 
@@ -181,7 +186,7 @@ function initMap() {
       lng: position.coords.longitude
     };
 
-    newcirc = new google.maps.Circle({
+  /*  newcirc = new google.maps.Circle({
       strokeColor: '#FF0000',
       strokeOpacity: 1,
       strokeWeight: 2,
@@ -190,7 +195,7 @@ function initMap() {
       map: map,
       center: mappos,
       radius: 10000
-    });
+    });*/
 
     map.setCenter(mappos);
 

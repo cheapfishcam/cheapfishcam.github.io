@@ -138,7 +138,7 @@ var FPS = 30;
       mappos.lng += ball.direction.x
       mappos.lat += ball.direction.y
       map.setCenter(mappos);
-      newcirc.setMap(null);
+      //newcirc.setMap(null);
       var newcirc = new google.maps.Circle({
         strokeColor: '#FF0000',
         strokeOpacity: 1,

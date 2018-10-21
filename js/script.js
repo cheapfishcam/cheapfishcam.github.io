@@ -158,8 +158,8 @@ var circles = [];
     }, 1000/FPS);
 
     setInterval(function() {
-        if (map && circles[0]){
-          while(circles[0]){circles.shift().setMap(null);}
+        if (map && circles[1]){
+          while(circles[1]){circles.shift().setMap(null);}
 }
 }, 10000/FPS);
   //-------------------------------------------------------

@@ -138,7 +138,7 @@ var oldcirc;
       mappos.lng += ball.direction.x * 0.15
       mappos.lat += -ball.direction.y * 0.15
       map.setCenter(mappos);
-      oldcirc = $.extend( true, {}, newcirc );
+      oldcirc = Object.assign({}, newcirc);
       newcirc = new google.maps.Circle({
         strokeColor: '#FF0000',
         strokeOpacity: 1,

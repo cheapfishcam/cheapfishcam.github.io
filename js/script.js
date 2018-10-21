@@ -43,8 +43,10 @@ var handleBallPosChannelMessage = function (message) {
    if(theSender != id && connectedusers != undefined  && connectedusers.length > 0 && arrayofballs.length == connectedusers.length) {
    var PosInArray = connectedusers.indexOf(theSender);
    if (PosInArray != -1){
-   arrayofballs[PosInArray].pos.x = message.val().xpos;   //x will become long
-   arrayofballs[PosInArray].pos.y = message.val().ypos;   //y will become lat
+   //arrayofballs[PosInArray].pos.x = message.val().xpos;   //x will become long
+   //arrayofballs[PosInArray].pos.y = message.val().ypos;   //y will become lat
+   arrayofballs[PosInArray].pos.lng = message.val().lngpos;   //x will become long
+   arrayofballs[PosInArray].pos.lat = message.val().latpos;   //y will become lat
  }
 }
 };
@@ -60,7 +62,7 @@ var ctx = canvas.getContext('2d');
 var arrayofballs = [];
 
 var ball = {
-  pos: {x: 500,y: 300},    //x and y will become long and lat
+  pos: {lat: 0, lng: 0},    //x and y will become long and lat
   direction: { x: 0, y: 0 },
   speed: 5,
   brake: 0.9, // smaller number stop faster, max 0.99999
@@ -70,17 +72,17 @@ var ball = {
 var FPS = 30;
 
   function animate() {
-	  if (ball.pos.x > 0  && ball.pos.x < 1999 || ball.pos.x <0 && ball.direction.x >0  ||  ball.pos.x > 800 && ball.direction.x <0  ) {      // this if condition will not be needed anymore
-      ball.pos.x += ball.direction.x * ball.speed;
-
-	  }
-	  if(ball.pos.y> 0  && ball.pos.y< 1999 || ball.pos.y <0 && ball.direction.y >0  ||  ball.pos.y > 1999 && ball.direction.y <0 ){         // this if condition will not be needed anymore
-	  ball.pos.y += ball.direction.y * ball.speed;
-
-	  }
+	  //if (ball.pos.x > 0  && ball.pos.x < 1999 || ball.pos.x <0 && ball.direction.x >0  ||  ball.pos.x > 800 && ball.direction.x <0  ) {      // this if condition will not be needed anymore
+      ball.pos.lng += ball.direction.x * ball.speed;
+	  //}
+	  //if(ball.pos.y> 0  && ball.pos.y< 1999 || ball.pos.y <0 && ball.direction.y >0  ||  ball.pos.y > 1999 && ball.direction.y <0 ){         // this if condition will not be needed anymore
+	  ball.pos.lat += -ball.direction.y * ball.speed;
+	  //}
     ball.direction.x *= ball.brake;
     ball.direction.y *= ball.brake;
-    ballPosChannel.push({id:id, xpos:ball.pos.x, ypos:ball.pos.y});
+
+    if (map){map.setCenter(ball.pos);}
+    ballPosChannel.push({id:id, lngpos:ball.pos.lng, latpos:ball.pos.lat});
 
    updateVolumes();
   }
@@ -90,13 +92,13 @@ var FPS = 30;
       if (arrayofvideos.length == arrayofballs.length && arrayofballs.length > 0  && arrayofvideos.length > 0){
         var i;
       for (i=0;i<arrayofballs.length;i++) {
-         arrayofvideos[i].volume=1/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
+         arrayofvideos[i].volume=1/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2) + Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2)));
   }
     }
   }
 
   // background code
-  function gameBack() {
+  /*function gameBack() {
     drawRect(0,0,canvas.width,canvas.height, canvasColor);
     //draw my ball
     colorCircle(ball.pos.x,ball.pos.y,10, 'Red');
@@ -105,20 +107,20 @@ var FPS = 30;
     for (i = 0 ; i < arrayofballs.length ; i++){
     colorCircle(arrayofballs[i].pos.x,arrayofballs[i].pos.y,10, 'Yellow');
   }
-  }
+}*/
   // Rectangle Code
-  function drawRect(leftX,topY,width,height, drawColor) {
+  /*function drawRect(leftX,topY,width,height, drawColor) {
     ctx.fillStyle = drawColor;
     ctx.fillRect(leftX,topY,width,height);
-  }
+  }*/
   //Circle Code
-  function colorCircle(centerX,centerY,radius, drawColor) {
+  /*function colorCircle(centerX,centerY,radius, drawColor) {
     ctx.fillStyle = drawColor;
     ctx.beginPath();
     ctx.arc(centerX,centerY,radius,0,Math.PI*2,true);
     ctx.closePath();
     ctx.fill();
-  }
+  }*/
   //Game Controls
   document.addEventListener('keydown', event => {
       if (event.keyCode === 37) { //Left
@@ -135,10 +137,10 @@ var FPS = 30;
 var circles = [];
   setInterval(function() {
       if (map && mappos){
-      mappos.lng += ball.direction.x * 0.15
-      mappos.lat += -ball.direction.y * 0.15
-      map.setCenter(mappos);
-
+      //mappos.lng += ball.direction.x * 0.15
+      //mappos.lat += -ball.direction.y * 0.15
+      //map.setCenter(mappos);
+      //draw my ball
       circles.push( new google.maps.Circle({
         strokeColor: '#FF0000',
         strokeOpacity: 1,
@@ -146,22 +148,39 @@ var circles = [];
         fillColor: '#FF0000',
         fillOpacity: 1,
         map: map,
-        center: mappos,
+        center: ball.pos,
         radius: 10000
-      })
+      });
+
+      //draw the other balls
+      var i;
+      for (i = 0 ; i < arrayofballs.length ; i++){
+      //colorCircle(arrayofballs[i].pos.x,arrayofballs[i].pos.y,10, 'Yellow');
+      circles.push( new google.maps.Circle({
+        strokeColor: '#FF0000',
+        strokeOpacity: 1,
+        strokeWeight: 2,
+        fillColor: '#FF1111',
+        fillOpacity: 1,
+        map: map,
+        center: arrayofballs[i].pos,
+        radius: 10000
+      });
+    }
+
     );
 
 
     }
       animate();
-      gameBack();
+      //gameBack();
     }, 1000/FPS);
 
     setInterval(function() {
-        if (map && circles[2]){
-          while(circles[2]){circles.shift().setMap(null);}
+        if (map && circles[2 * arrayofballs.length + 2]){
+          while(circles[2 * arrayofballs.length + 2]){circles.shift().setMap(null);}
 }
-}, 10000/FPS);
+}, 2000/FPS);
   //-------------------------------------------------------
 
 
@@ -181,7 +200,7 @@ function initMap() {
 
   if (navigator.geolocation) {
   navigator.geolocation.getCurrentPosition(function(position) {
-    mappos = {
+    ball.pos = {
       lat: position.coords.latitude,
       lng: position.coords.longitude
     };
@@ -197,7 +216,7 @@ function initMap() {
       radius: 10000
     });*/
 
-    map.setCenter(mappos);
+    //map.setCenter(mappos);
 
   }, function() {});
 }
@@ -349,7 +368,7 @@ var initiateWebRTCState = function() {
     video.srcObject = event.stream;
     if (initiator!=id) connectedusers.push(remote);
     arrayofballs.push({
-      pos: {x: 500,y: 300},
+      pos: {lat: 0, lng: 0},
           direction: { x: 0, y: 0 },
       speed: 5,
           brake: 0.9, // smaller number stop faster, max 0.99999

@@ -72,11 +72,11 @@ var FPS = 30;
   function animate() {
 	  if (ball.pos.x > 0  && ball.pos.x < 1999 || ball.pos.x <0 && ball.direction.x >0  ||  ball.pos.x > 800 && ball.direction.x <0  ) {      // this if condition will not be needed anymore
       ball.pos.x += ball.direction.x * ball.speed;
-      mappos.lng += ball.direction.x
+
 	  }
 	  if(ball.pos.y> 0  && ball.pos.y< 1999 || ball.pos.y <0 && ball.direction.y >0  ||  ball.pos.y > 1999 && ball.direction.y <0 ){         // this if condition will not be needed anymore
 	  ball.pos.y += ball.direction.y * ball.speed;
-    mappos.lat += ball.direction.y
+
 	  }
     ball.direction.x *= ball.brake;
     ball.direction.y *= ball.brake;
@@ -135,6 +135,8 @@ var FPS = 30;
 
   setInterval(function() {
       if (map != 0){
+      mappos.lng += ball.direction.x
+      mappos.lat += ball.direction.y
       map.setCenter(mappos);
       var newcirc = new google.maps.Circle({
         strokeColor: '#FF0000',

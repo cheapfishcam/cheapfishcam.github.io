@@ -27,6 +27,8 @@ var arrayofrunning = [];
 var arrayofchannelopen = [];
 var connectedusers = [];
 var canvasColor = 'white';
+var mappos;
+var map = 0;
 
 // Generate this browser a unique ID
 // On Firebase peers use this unique ID to address messages to each other
@@ -70,9 +72,11 @@ var FPS = 30;
   function animate() {
 	  if (ball.pos.x > 0  && ball.pos.x < 1999 || ball.pos.x <0 && ball.direction.x >0  ||  ball.pos.x > 800 && ball.direction.x <0  ) {      // this if condition will not be needed anymore
       ball.pos.x += ball.direction.x * ball.speed;
+      mappos.lng += ball.direction.x
 	  }
 	  if(ball.pos.y> 0  && ball.pos.y< 1999 || ball.pos.y <0 && ball.direction.y >0  ||  ball.pos.y > 1999 && ball.direction.y <0 ){         // this if condition will not be needed anymore
 	  ball.pos.y += ball.direction.y * ball.speed;
+    mappos.lat += ball.direction.y
 	  }
     ball.direction.x *= ball.brake;
     ball.direction.y *= ball.brake;
@@ -130,7 +134,19 @@ var FPS = 30;
 
 
   setInterval(function() {
-          animate();
+      if (map != 0){
+      map.setCenter(mappos);
+      var newcirc = new google.maps.Circle({
+        strokeColor: '#FF0000',
+        strokeOpacity: 1,
+        strokeWeight: 2,
+        fillColor: '#FF0000',
+        fillOpacity: 1,
+        map: map,
+        center: mappos,
+        radius: 10000
+      })}
+      animate();
       gameBack();
     }, 1000/FPS);
   //-------------------------------------------------------
@@ -141,8 +157,7 @@ var FPS = 30;
 var servers = {'iceServers': [{'urls': 'stun:stun.services.mozilla.com'}, {'urls': 'stun:stun.l.google.com:19302'}, {'urls': 'turn:numb.viagenie.ca','credential': 'beaver','username': 'webrtc.websitebeaver@gmail.com'}]};
 
 var arrayofvideos = [];
-var pos;
-var map;
+
 function initMap() {
   // Create the map.
   map = new google.maps.Map(document.getElementById('map'), {
@@ -153,7 +168,7 @@ function initMap() {
 
   if (navigator.geolocation) {
   navigator.geolocation.getCurrentPosition(function(position) {
-    pos = {
+    mappos = {
       lat: position.coords.latitude,
       lng: position.coords.longitude
     };
@@ -165,11 +180,11 @@ function initMap() {
       fillColor: '#FF0000',
       fillOpacity: 1,
       map: map,
-      center: pos,
+      center: mappos,
       radius: 10000
     });
 
-    map.setCenter(pos);
+    map.setCenter(mappos);
 
   }, function() {});
 }
@@ -179,7 +194,7 @@ function initMap() {
 
 function startnow() {
 
-  map.setCenter(pos);
+  //map.setCenter(mappos);
   navigator.mediaDevices.getUserMedia({audio:false, video:true})
     .then(stream => yourVideo.srcObject = stream);
 

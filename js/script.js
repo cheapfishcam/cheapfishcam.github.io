@@ -150,7 +150,7 @@ var circles = [];
         map: map,
         center: ball.pos,
         radius: 10000
-      });
+      }));
 
       //draw the other balls
       var i;
@@ -165,10 +165,10 @@ var circles = [];
         map: map,
         center: arrayofballs[i].pos,
         radius: 10000
-      });
+      }));
     }
 
-    );
+  //  );
 
 
     }
@@ -176,7 +176,9 @@ var circles = [];
       //gameBack();
     }, 1000/FPS);
 
-    setInterval(function() {
+
+
+setInterval(function() {
         if (map && circles[2 * arrayofballs.length + 2]){
           while(circles[2 * arrayofballs.length + 2]){circles.shift().setMap(null);}
 }

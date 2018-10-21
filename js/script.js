@@ -132,13 +132,13 @@ var FPS = 30;
       }
   });
 
-
+var oldcirc
   setInterval(function() {
       if (map != 0 && newcirc!=0){
-      mappos.lng += ball.direction.x * 0.5
-      mappos.lat += -ball.direction.y * 0.5
+      mappos.lng += ball.direction.x * 0.15
+      mappos.lat += -ball.direction.y * 0.15
       map.setCenter(mappos);
-      newcirc.setMap(null);
+      oldcirc = newcirc;
       newcirc = new google.maps.Circle({
         strokeColor: '#FF0000',
         strokeOpacity: 1,
@@ -148,7 +148,9 @@ var FPS = 30;
         map: map,
         center: mappos,
         radius: 10000
-      })}
+      })
+      oldcirc.setMap(null);
+    }
       animate();
       gameBack();
     }, 1000/FPS);

@@ -29,7 +29,7 @@ var connectedusers = [];
 var canvasColor = 'white';
 var mappos;
 var map = 0;
-
+var newcirc = 0;
 // Generate this browser a unique ID
 // On Firebase peers use this unique ID to address messages to each other
 // after they have found each other in the announcement channel
@@ -134,12 +134,12 @@ var FPS = 30;
 
 
   setInterval(function() {
-      if (map != 0){
-      mappos.lng += ball.direction.x
-      mappos.lat += ball.direction.y
+      if (map != 0 && newcirc!=0){
+      mappos.lng += ball.direction.x * 0.5
+      mappos.lat += -ball.direction.y * 0.5
       map.setCenter(mappos);
-      //newcirc.setMap(null);
-      var newcirc = new google.maps.Circle({
+      newcirc.setMap(null);
+      newcirc = new google.maps.Circle({
         strokeColor: '#FF0000',
         strokeOpacity: 1,
         strokeWeight: 2,
@@ -176,7 +176,7 @@ function initMap() {
       lng: position.coords.longitude
     };
 
-    var newcirc = new google.maps.Circle({
+    newcirc = new google.maps.Circle({
       strokeColor: '#FF0000',
       strokeOpacity: 1,
       strokeWeight: 2,

@@ -27,7 +27,7 @@ var arrayofrunning = [];
 var arrayofchannelopen = [];
 var connectedusers = [];
 var canvasColor = 'white';
-var mappos;
+//var mappos;
 var map;
 //var newcirc = 0;
 // Generate this browser a unique ID
@@ -64,7 +64,7 @@ var arrayofballs = [];
 var ball = {
   pos: {lat: 0, lng: 0},    //x and y will become long and lat
   direction: { x: 0, y: 0 },
-  speed: 5,
+  speed: 0.15,
   brake: 0.9, // smaller number stop faster, max 0.99999
 };
 
@@ -136,7 +136,7 @@ var FPS = 30;
 
 var circles = [];
   setInterval(function() {
-      if (map && mappos){
+      if (map){
       //mappos.lng += ball.direction.x * 0.15
       //mappos.lat += -ball.direction.y * 0.15
       //map.setCenter(mappos);

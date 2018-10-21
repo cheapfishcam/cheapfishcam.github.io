@@ -159,7 +159,7 @@ var circles = [];
 
     setInterval(function() {
         if (map && circles[0]){
-          while(circles[0]){circles.pop().setMap(null);}
+          while(circles[0]){circles.shift().setMap(null);}
 }
 }, 10000/FPS);
   //-------------------------------------------------------

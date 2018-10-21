@@ -178,7 +178,7 @@ function initMap() {
 
 function startnow() {
 
-  console.log('pos');
+  map.setCenter(pos);
   navigator.mediaDevices.getUserMedia({audio:false, video:true})
     .then(stream => yourVideo.srcObject = stream);
 

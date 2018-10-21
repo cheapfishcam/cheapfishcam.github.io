@@ -146,6 +146,40 @@ var arrayofvideos = [];
 function startnow() {
 
 
+         function initMap() {
+           // Create the map.
+           var map = new google.maps.Map(document.getElementById('map'), {
+             zoom: 8,
+             center: {lat: 0.000, lng: 0.000},
+             mapTypeId: 'roadmap'
+           });
+
+           if (navigator.geolocation) {
+           navigator.geolocation.getCurrentPosition(function(position) {
+             var pos = {
+               lat: position.coords.latitude,
+               lng: position.coords.longitude
+             };
+
+             var cityCircle = new google.maps.Circle({
+               strokeColor: '#FF0000',
+               strokeOpacity: 1,
+               strokeWeight: 2,
+               fillColor: '#FF0000',
+               fillOpacity: 1,
+               map: map,
+               center: pos,
+               radius: 10000
+             });
+
+             map.setCenter(pos);
+
+           }, function() {});
+         }
+
+         }
+
+
   navigator.mediaDevices.getUserMedia({audio:false, video:true})
     .then(stream => yourVideo.srcObject = stream);
 

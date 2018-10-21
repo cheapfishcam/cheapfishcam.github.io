@@ -57,8 +57,8 @@ ballPosChannel.limitToLast(100).on('child_added', handleBallPosChannelMessage);
 
 
 
-var canvas = document.getElementById('game');
-var ctx = canvas.getContext('2d');
+//var canvas = document.getElementById('game');
+//var ctx = canvas.getContext('2d');
 var arrayofballs = [];
 
 var ball = {
@@ -74,9 +74,13 @@ var FPS = 30;
   function animate() {
 	  //if (ball.pos.x > 0  && ball.pos.x < 1999 || ball.pos.x <0 && ball.direction.x >0  ||  ball.pos.x > 800 && ball.direction.x <0  ) {      // this if condition will not be needed anymore
       ball.pos.lng += ball.direction.x * ball.speed;
+      if (ball.pos.lng > 180){ball.pos.lng -= 360;}
+      if (ball.pos.lng < -180){ball.pos.lng += 360;}
 	  //}
 	  //if(ball.pos.y> 0  && ball.pos.y< 1999 || ball.pos.y <0 && ball.direction.y >0  ||  ball.pos.y > 1999 && ball.direction.y <0 ){         // this if condition will not be needed anymore
 	  ball.pos.lat += -ball.direction.y * ball.speed;
+    if (ball.pos.lat > 90){ball.pos.lat -= 180;}
+    if (ball.pos.lat < -90){ball.pos.lat += 180;}
 	  //}
     ball.direction.x *= ball.brake;
     ball.direction.y *= ball.brake;
@@ -157,10 +161,10 @@ var circles = [];
       for (i = 0 ; i < arrayofballs.length ; i++){
       //colorCircle(arrayofballs[i].pos.x,arrayofballs[i].pos.y,10, 'Yellow');
       circles.push( new google.maps.Circle({
-        strokeColor: '#FF0000',
+        strokeColor: '#AF0000',
         strokeOpacity: 1,
         strokeWeight: 2,
-        fillColor: '#FF1111',
+        fillColor: '#AF1111',
         fillOpacity: 1,
         map: map,
         center: arrayofballs[i].pos,

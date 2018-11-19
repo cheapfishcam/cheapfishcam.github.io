@@ -11,7 +11,8 @@ html, body {
 }
 video {
   background-color: #ddd;
-  border-radius: 7px;
+  border-radius: 10px;
+  z-index: 1000;
   margin: 10px 0px 0px 100px;
   width: 320px;
   height: 240px;

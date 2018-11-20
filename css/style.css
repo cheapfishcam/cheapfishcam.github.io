@@ -93,3 +93,8 @@ button {
   -ms-transition: 0.2s ease-in-out;
   -o-transition: 0.2s ease-in-out;
 }
+
+#search{
+  width: 270px;
+  height: 35px;
+}

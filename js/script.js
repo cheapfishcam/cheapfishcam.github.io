@@ -37,6 +37,25 @@ var id = Math.random().toString().replace('.', '');
 var remote;          // ID of the remote peer -- set once they send an offer
 //-----------------------------------------------------------------
 
+
+//Makes screen fullscreen automatically on entering the website accordding to the browser used..
+function launchFullScreen(element) {
+  if(element.requestFullScreen) {
+    element.requestFullScreen();
+  } else if(element.mozRequestFullScreen) {
+    element.mozRequestFullScreen();
+  } else if(element.webkitRequestFullScreen) {
+    element.webkitRequestFullScreen();
+  }
+}
+
+// Launch fullscreen for browsers that support it!
+launchFullScreen(document.documentElement); // the whole page
+launchFullScreen(document.getElementById("videoElement")); // any individual element
+
+
+
+
 var handleBallPosChannelMessage = function (message) {
   //console.log("got position message from "+ message.val().id + " xpos " + message.val().xpos + "ypos " + message.val().ypos);
    var theSender = message.val().id;

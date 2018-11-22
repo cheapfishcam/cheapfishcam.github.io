@@ -39,20 +39,25 @@ var remote;          // ID of the remote peer -- set once they send an offer
 
 
 //Makes screen fullscreen automatically on entering the website accordding to the browser used..
-function launchFullScreen(element) {
-  if(element.requestFullScreen) {
-    element.requestFullScreen();
-  } else if(element.mozRequestFullScreen) {
-    element.mozRequestFullScreen();
-  } else if(element.webkitRequestFullScreen) {
-    element.webkitRequestFullScreen();
+
+ var fulscrn  = document.getElementById('fullscrnbtn');
+ var html = document.documentElement;
+
+function launchFullScreen() {
+  if(html.requestFullscreen) {
+    html.requestFullScreen();
+  } else if(html.mozRequestFullScreen) {
+    html.mozRequestFullScreen();
+  } else if(html.webkitRequestFullScreen) {
+    html.webkitRequestFullScreen();
   }
 }
 
+fulscrn.addEventListener('click' , launchFullScreen);
 
-// Launch fullscreen for browsers that support it!
-launchFullScreen(document.documentElement); // the whole page
-launchFullScreen(document.getElementById("videoElement")); // any individual element
+
+
+
 
 
 

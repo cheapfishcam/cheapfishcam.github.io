@@ -43,6 +43,17 @@ button {
   text-decoration: none;
 }
 
+.fullscreenbtn{
+  margin-right: 100px;
+  cursor: pointer;
+  position: fixed;
+  font-size: 19px;
+  color: #333333;
+  top: 10px;
+  left: 98.2%;
+  z-index: 10000;
+}
+
 .menu-container .menu-btn:hover { color: #666666; }
 
 .menu-container .menu-slide {

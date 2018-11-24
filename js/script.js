@@ -27,15 +27,17 @@ var arrayofrunning = [];
 var arrayofchannelopen = [];
 var connectedusers = [];
 var canvasColor = 'white';
-//var mappos;
-var map;
-//var newcirc = 0;
+
 // Generate this browser a unique ID
 // On Firebase peers use this unique ID to address messages to each other
 // after they have found each other in the announcement channel
 var id = Math.random().toString().replace('.', '');
 var remote;          // ID of the remote peer -- set once they send an offer
 //-----------------------------------------------------------------
+
+
+
+
 
 
 //Makes screen fullscreen automatically on entering the website accordding to the browser used..
@@ -58,20 +60,14 @@ fulscrn.addEventListener('click' , launchFullScreen);
 
 
 
-
-
-
-
 var handleBallPosChannelMessage = function (message) {
   //console.log("got position message from "+ message.val().id + " xpos " + message.val().xpos + "ypos " + message.val().ypos);
    var theSender = message.val().id;
    if(theSender != id && connectedusers != undefined  && connectedusers.length > 0 && arrayofballs.length == connectedusers.length) {
    var PosInArray = connectedusers.indexOf(theSender);
    if (PosInArray != -1){
-   //arrayofballs[PosInArray].pos.x = message.val().xpos;   //x will become long
-   //arrayofballs[PosInArray].pos.y = message.val().ypos;   //y will become lat
-   arrayofballs[PosInArray].pos.lng = message.val().lngpos;   //x will become long
-   arrayofballs[PosInArray].pos.lat = message.val().latpos;   //y will become lat
+   arrayofballs[PosInArray].pos.x = message.val().xpos;
+   arrayofballs[PosInArray].pos.y = message.val().ypos;
  }
 }
 };
@@ -82,14 +78,14 @@ ballPosChannel.limitToLast(100).on('child_added', handleBallPosChannelMessage);
 
 
 
-//var canvas = document.getElementById('game');
-//var ctx = canvas.getContext('2d');
+var canvas = document.getElementById('game');
+var ctx = canvas.getContext('2d');
 var arrayofballs = [];
 
 var ball = {
-  pos: {lat: 0, lng: 0},    //x and y will become long and lat
+  pos: {x: 500,y: 300},
   direction: { x: 0, y: 0 },
-  speed: 0.15,
+  speed: 5,
   brake: 0.9, // smaller number stop faster, max 0.99999
 };
 
@@ -97,21 +93,20 @@ var ball = {
 var FPS = 30;
 
   function animate() {
-	  //if (ball.pos.x > 0  && ball.pos.x < 1999 || ball.pos.x <0 && ball.direction.x >0  ||  ball.pos.x > 800 && ball.direction.x <0  ) {      // this if condition will not be needed anymore
-      ball.pos.lng += ball.direction.x * ball.speed;
-      if (ball.pos.lng > 180){ball.pos.lng -= 360;}
-      if (ball.pos.lng < -180){ball.pos.lng += 360;}
-	  //}
-	  //if(ball.pos.y> 0  && ball.pos.y< 1999 || ball.pos.y <0 && ball.direction.y >0  ||  ball.pos.y > 1999 && ball.direction.y <0 ){         // this if condition will not be needed anymore
-	  ball.pos.lat += -ball.direction.y * ball.speed;
-    if (ball.pos.lat > 90){ball.pos.lat -= 180;}
-    if (ball.pos.lat < -90){ball.pos.lat += 180;}
-	  //}
-    ball.direction.x *= ball.brake;
-    ball.direction.y *= ball.brake;
+	  if (ball.pos.x > 0  && ball.pos.x < 1999 || ball.pos.x <0 && ball.direction.x >0  ||  ball.pos.x > 800 && ball.direction.x <0  ) {
+      ball.pos.x += ball.direction.x * ball.speed;
+	  }
+	  if(ball.pos.y> 0  && ball.pos.y< 1999 || ball.pos.y <0 && ball.direction.y >0  ||  ball.pos.y > 1999 && ball.direction.y <0 ){
+	  ball.pos.y += ball.direction.y * ball.speed;
+	  }
+      ball.direction.x *= ball.brake;
+      ball.direction.y *= ball.brake;
 
-    if (map){map.setCenter(ball.pos);}
-    ballPosChannel.push({id:id, lngpos:ball.pos.lng, latpos:ball.pos.lat});
+      ballPosChannel.push({id:id, xpos:ball.pos.x, ypos:ball.pos.y});
+
+      /*if(arrayofballs.length>0){
+   		 console.log(arrayofballs[0].pos.x);
+   	 }*/
 
    updateVolumes();
   }
@@ -121,13 +116,13 @@ var FPS = 30;
       if (arrayofvideos.length == arrayofballs.length && arrayofballs.length > 0  && arrayofvideos.length > 0){
         var i;
       for (i=0;i<arrayofballs.length;i++) {
-         arrayofvideos[i].volume=1/Math.max(1, 50 * Math.sqrt(Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2) + Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2)));
+         arrayofvideos[i].volume=1/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
   }
     }
   }
 
   // background code
-  /*function gameBack() {
+  function gameBack() {
     drawRect(0,0,canvas.width,canvas.height, canvasColor);
     //draw my ball
     colorCircle(ball.pos.x,ball.pos.y,10, 'Red');
@@ -136,20 +131,20 @@ var FPS = 30;
     for (i = 0 ; i < arrayofballs.length ; i++){
     colorCircle(arrayofballs[i].pos.x,arrayofballs[i].pos.y,10, 'Yellow');
   }
-}*/
+  }
   // Rectangle Code
-  /*function drawRect(leftX,topY,width,height, drawColor) {
+  function drawRect(leftX,topY,width,height, drawColor) {
     ctx.fillStyle = drawColor;
     ctx.fillRect(leftX,topY,width,height);
-  }*/
+  }
   //Circle Code
-  /*function colorCircle(centerX,centerY,radius, drawColor) {
+  function colorCircle(centerX,centerY,radius, drawColor) {
     ctx.fillStyle = drawColor;
     ctx.beginPath();
     ctx.arc(centerX,centerY,radius,0,Math.PI*2,true);
     ctx.closePath();
     ctx.fill();
-  }*/
+  }
   //Game Controls
   document.addEventListener('keydown', event => {
       if (event.keyCode === 37) { //Left
@@ -163,55 +158,19 @@ var FPS = 30;
       }
   });
 
-var circles = [];
+
+//  function yBall(offset) {
+//    ball.direction.y += offset;
+//  }
+//  function xBall(offset) {
+//    ball.direction.x += offset;
+//  }
+
+
   setInterval(function() {
-      if (map){
-      //mappos.lng += ball.direction.x * 0.15
-      //mappos.lat += -ball.direction.y * 0.15
-      //map.setCenter(mappos);
-      //draw my ball
-      circles.push( new google.maps.Circle({
-        strokeColor: '#FF0000',
-        strokeOpacity: 1,
-        strokeWeight: 2,
-        fillColor: '#FF0000',
-        fillOpacity: 1,
-        map: map,
-        center: ball.pos,
-        radius: 10000
-      }));
-
-      //draw the other balls
-      var i;
-      for (i = 0 ; i < arrayofballs.length ; i++){
-      //colorCircle(arrayofballs[i].pos.x,arrayofballs[i].pos.y,10, 'Yellow');
-      circles.push( new google.maps.Circle({
-        strokeColor: '#AF0000',
-        strokeOpacity: 1,
-        strokeWeight: 2,
-        fillColor: '#AF1111',
-        fillOpacity: 1,
-        map: map,
-        center: arrayofballs[i].pos,
-        radius: 10000
-      }));
-    }
-
-  //  );
-
-
-    }
-      animate();
-      //gameBack();
+          animate();
+      gameBack();
     }, 1000/FPS);
-
-
-
-setInterval(function() {
-        if (map && circles[2 * arrayofballs.length + 2]){
-          while(circles[2 * arrayofballs.length + 2]){circles.shift().setMap(null);}
-}
-}, 2000/FPS);
   //-------------------------------------------------------
 
 
@@ -221,43 +180,10 @@ var servers = {'iceServers': [{'urls': 'stun:stun.services.mozilla.com'}, {'urls
 
 var arrayofvideos = [];
 
-function initMap() {
-  // Create the map.
-  map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 8,
-    center: {lat: 0.000, lng: 0.000},
-    mapTypeId: 'roadmap'
-  });
-
-  if (navigator.geolocation) {
-  navigator.geolocation.getCurrentPosition(function(position) {
-    ball.pos = {
-      lat: position.coords.latitude,
-      lng: position.coords.longitude
-    };
-
-  /*  newcirc = new google.maps.Circle({
-      strokeColor: '#FF0000',
-      strokeOpacity: 1,
-      strokeWeight: 2,
-      fillColor: '#FF0000',
-      fillOpacity: 1,
-      map: map,
-      center: mappos,
-      radius: 10000
-    });*/
-
-    //map.setCenter(mappos);
-
-  }, function() {});
-}
-
-}
-
 
 function startnow() {
 
-  //map.setCenter(mappos);
+
   navigator.mediaDevices.getUserMedia({audio:false, video:true})
     .then(stream => yourVideo.srcObject = stream);
 
@@ -399,7 +325,7 @@ var initiateWebRTCState = function() {
     video.srcObject = event.stream;
     if (initiator!=id) connectedusers.push(remote);
     arrayofballs.push({
-      pos: {lat: 0, lng: 0},
+      pos: {x: 500,y: 300},
           direction: { x: 0, y: 0 },
       speed: 5,
           brake: 0.9, // smaller number stop faster, max 0.99999

@@ -27,6 +27,8 @@ var arrayofrunning = [];
 var arrayofchannelopen = [];
 var connectedusers = [];
 var canvasColor = 'white';
+var canvas = document.getElementById('game');
+var ctx = canvas.getContext('2d');
 
 // Generate this browser a unique ID
 // On Firebase peers use this unique ID to address messages to each other
@@ -34,6 +36,7 @@ var canvasColor = 'white';
 var id = Math.random().toString().replace('.', '');
 var remote;          // ID of the remote peer -- set once they send an offer
 //-----------------------------------------------------------------
+
 
 
 
@@ -78,8 +81,6 @@ ballPosChannel.limitToLast(100).on('child_added', handleBallPosChannelMessage);
 
 
 
-var canvas = document.getElementById('game');
-var ctx = canvas.getContext('2d');
 var arrayofballs = [];
 
 var ball = {

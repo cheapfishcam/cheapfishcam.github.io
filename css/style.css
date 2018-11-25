@@ -18,6 +18,7 @@ button {
   margin: 5px 0px 0px 10px !important;
   width: 654px;
 }
+canvas{ border: 5px solid black; }
 
 .menu-container:hover .menu-slide {
   -o-transform: translate(270px, 0);

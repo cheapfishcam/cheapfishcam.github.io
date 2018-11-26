@@ -43,7 +43,7 @@ var remote;          // ID of the remote peer -- set once they send an offer
 
 
 
-//Makes screen fullscreen automatically on entering the website accordding to the browser used..
+//Makes screen fullscreen 
 
  var fulscrn  = document.getElementById('fullscrnbtn');
  var html = document.documentElement;

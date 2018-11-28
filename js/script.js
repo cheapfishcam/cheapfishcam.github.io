@@ -61,6 +61,31 @@ function launchFullScreen() {
 fulscrn.addEventListener('click' , launchFullScreen);
 
 
+//Opens video on pressing spacebar
+document.addEventListener('keydown',function(e){
+  if (e.keyCode==32) {
+    navigator.mediaDevices.getUserMedia({audio:true, video:true})
+.then( (stream) =>  {
+  var i;
+  yourVideo.srcObject = stream;
+  for (i = 0 ; i < arrayofpeerconnections.length ; i++){
+      arrayofpeerconnections[i].addStream(stream);
+    }
+});
+  }
+});
+
+document.addEventListener('keyup', function(e){
+  if (e.keyCode==32) {
+//need code to close video again
+  }
+});
+
+
+
+
+
+
 
 
 var handleBallPosChannelMessage = function (message) {
@@ -185,7 +210,7 @@ var arrayofvideos = [];
 function startnow() {
 
 
-  navigator.mediaDevices.getUserMedia({audio:false, video:true})
+  navigator.mediaDevices.getUserMedia({audio:true, video:false})
     .then(stream => yourVideo.srcObject = stream);
 
 
@@ -244,7 +269,7 @@ var handleOfferSignal = function(message) {
   remote = message.sender;
   initiateWebRTCState();
   arrayofrunning[arrayofrunning.length - 1] = true;
-  navigator.mediaDevices.getUserMedia({audio:true, video:true})
+  navigator.mediaDevices.getUserMedia({audio:true, video:false})
   .then(stream => arrayofpeerconnections[arrayofpeerconnections.length - 1].addStream(stream))
   .then(() => (arrayofpeerconnections[arrayofpeerconnections.length - 1].onicecandidate = handleICECandidate))
   .then(() => (arrayofpeerconnections[arrayofpeerconnections.length - 1].setRemoteDescription(new RTCSessionDescription(message))))

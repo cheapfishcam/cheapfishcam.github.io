@@ -29,6 +29,9 @@ var connectedusers = [];
 var canvasColor = 'white';
 var canvas = document.getElementById('game');
 var ctx = canvas.getContext('2d');
+var broadcasting = 0;  //if this is 1, the user's video is turned on on the other users' screens. When it becomes 0 again, the video turns off. This variable is sent to the other users in animate().
+var myStream;
+var arrayofstreams = [];
 
 // Generate this browser a unique ID
 // On Firebase peers use this unique ID to address messages to each other
@@ -85,6 +88,23 @@ document.addEventListener('keyup', function(e){
 
 
 
+//Opens video on pressing spacebar (a simpler, faster, implementation)
+
+document.addEventListener('keydown',function(e){
+  if (e.keyCode==32) {
+    broadcasting = 1
+    if (myStream != undefined && yourVideo.srcObject == null){yourVideo.srcObject = myStream;}
+  }
+});
+
+document.addEventListener('keyup', function(e){
+  if (e.keyCode==32) {
+    broadcasting = 0
+    yourVideo.src="";
+  }
+});
+
+
 
 
 
@@ -97,13 +117,15 @@ var handleBallPosChannelMessage = function (message) {
    if (PosInArray != -1){
    arrayofballs[PosInArray].pos.x = message.val().xpos;
    arrayofballs[PosInArray].pos.y = message.val().ypos;
+   arrayofballs[PosInArray].pos.y = message.val().ypos;
+   arrayofballs[PosInArray].broadcasting = message.val().broadcasting;
  }
 }
 };
 
 
 var ballPosChannel = database.child('positions');
-ballPosChannel.limitToLast(100).on('child_added', handleBallPosChannelMessage);
+ballPosChannel.limitToLast(30).on('child_added', handleBallPosChannelMessage);
 
 
 
@@ -114,6 +136,7 @@ var ball = {
   direction: { x: 0, y: 0 },
   speed: 5,
   brake: 0.9, // smaller number stop faster, max 0.99999
+  broadcasting: 0,
 };
 
 
@@ -129,7 +152,7 @@ var FPS = 30;
       ball.direction.x *= ball.brake;
       ball.direction.y *= ball.brake;
 
-      ballPosChannel.push({id:id, xpos:ball.pos.x, ypos:ball.pos.y});
+      ballPosChannel.push({id:id, xpos:ball.pos.x, ypos:ball.pos.y, broadcasting:broadcasting});
 
       /*if(arrayofballs.length>0){
    		 console.log(arrayofballs[0].pos.x);
@@ -157,6 +180,9 @@ var FPS = 30;
     var i;
     for (i = 0 ; i < arrayofballs.length ; i++){
     colorCircle(arrayofballs[i].pos.x,arrayofballs[i].pos.y,10, 'Yellow');
+    //turn on video for broadcasting balls
+    if (arrayofballs[i].broadcasting == 1 && arrayofvideos[i].srcObject == null) {arrayofvideos[i].srcObject = arrayofstreams[i];
+    } else if(arrayofballs[i].broadcasting == 0) {arrayofvideos[i].src = "";}
   }
   }
   // Rectangle Code
@@ -211,8 +237,8 @@ var arrayofvideos = [];
 function startnow() {
 
 
-  navigator.mediaDevices.getUserMedia({audio:true, video:false})
-    .then(stream => yourVideo.srcObject = stream);
+  navigator.mediaDevices.getUserMedia({audio:true, video:true})
+    .then(stream => myStream = stream);
 
 
 /* WebRTC Demo
@@ -270,7 +296,7 @@ var handleOfferSignal = function(message) {
   remote = message.sender;
   initiateWebRTCState();
   arrayofrunning[arrayofrunning.length - 1] = true;
-  navigator.mediaDevices.getUserMedia({audio:true, video:false})
+  navigator.mediaDevices.getUserMedia({audio:true, video:true})
   .then(stream => arrayofpeerconnections[arrayofpeerconnections.length - 1].addStream(stream))
   .then(() => (arrayofpeerconnections[arrayofpeerconnections.length - 1].onicecandidate = handleICECandidate))
   .then(() => (arrayofpeerconnections[arrayofpeerconnections.length - 1].setRemoteDescription(new RTCSessionDescription(message))))
@@ -349,13 +375,15 @@ var initiateWebRTCState = function() {
     video.autoplay = true;
     document.body.appendChild(video);
     arrayofvideos.push(video);
-    video.srcObject = event.stream;
+    arrayofstreams.push(event.stream);
+    //video.srcObject = event.stream;
     if (initiator!=id) connectedusers.push(remote);
     arrayofballs.push({
       pos: {x: 500,y: 300},
-          direction: { x: 0, y: 0 },
+      direction: { x: 0, y: 0 },
       speed: 5,
-          brake: 0.9, // smaller number stop faster, max 0.99999
+      brake: 0.9, // smaller number stop faster, max 0.99999
+      broadcasting: 0,
     });
     arrayofchannelopen[arrayofchannelopen.length - 1] = 1;
 
@@ -381,9 +409,9 @@ var initiateWebRTCState = function() {
 };
 
 var announceChannel = database.child('announce');
-announceChannel.limitToLast(100).on('child_added', handleAnnounceChannelMessage);
+announceChannel.limitToLast(30).on('child_added', handleAnnounceChannelMessage);
 var signalChannel = database.child('messages').child(id);
-signalChannel.limitToLast(100).on('child_added', handleSignalChannelMessage);
+signalChannel.limitToLast(30).on('child_added', handleSignalChannelMessage);
 
 
 

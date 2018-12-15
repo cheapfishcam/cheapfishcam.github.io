@@ -47,16 +47,7 @@ var remote;          // ID of the remote peer -- set once they send an offer
 
 
 //Makes screen fullscreen
-//expirment
-document.getElementById('aywallo').value;
-document.getElementById('taneekda').value;
-document.getElementById('henaho').addEventListener('click',function(){
-  localStorage.setItem(taneekda, aywallo);
 
-});
-console.log(localStorage);
-
-//expirment
 
 
  var fulscrn  = document.getElementById('fullscrnbtn');

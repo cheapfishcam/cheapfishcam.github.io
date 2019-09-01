@@ -186,7 +186,7 @@ var FPS = 30;
     for (i = 0 ; i < arrayofballs.length ; i++){
     colorCircle(arrayofballs[i].pos.x,arrayofballs[i].pos.y,10, 'Yellow');
     //move video of other balls to be on top of respective balls
-    $("#videoDiv"+i).css({ "position": "absolute", "top": arrayofballs[i].pos.y-150, "left": arrayofballs[i].pos.x-250 }); //beta
+    $("#videoDiv"+i).css({ "position": "absolute", "top": arrayofballs[i].pos.y-250, "left": arrayofballs[i].pos.x-250 }); //beta
     //turn on video for broadcasting balls
     if (arrayofballs[i].broadcasting == 1 && arrayofvideos[i].srcObject == null) {arrayofvideos[i].srcObject = arrayofstreams[i];
     } else if(arrayofballs[i].broadcasting == 0) {arrayofvideos[i].src = "";}

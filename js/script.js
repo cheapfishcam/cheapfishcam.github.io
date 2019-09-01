@@ -178,6 +178,8 @@ var FPS = 30;
     drawRect(0,0,canvas.width,canvas.height, canvasColor);
     //draw my ball
     colorCircle(ball.pos.x,ball.pos.y,10, 'Red');
+    //Move video to be on top of ball
+    $("#videoDiv").css({ "position": "absolute", "top": ball.pos.y-150, "left": ball.pos.x-250 });
     //draw the other balls
     var i;
     for (i = 0 ; i < arrayofballs.length ; i++){
@@ -212,6 +214,7 @@ var FPS = 30;
         ball.direction.y += 1;
       }
   });
+
 
 
 //  function yBall(offset) {

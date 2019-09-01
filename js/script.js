@@ -15,8 +15,8 @@ var config = {
 var fb = firebase.initializeApp(config);
 var database = firebase.database().ref();
 var yourVideo = document.getElementById("yourVideo");
-var friendsVideo = document.getElementById("friendsVideo");
-var otherfriendsVideo = document.getElementById("otherfriendsVideo");
+//var friendsVideo = document.getElementById("friendsVideo");
+//var otherfriendsVideo = document.getElementById("otherfriendsVideo");
 var sender;
 var target;
 var initiator;
@@ -25,6 +25,7 @@ var arrayofpeerconnections = [];
 var arrayofdatachannels = [];
 var arrayofrunning = [];
 var arrayofchannelopen = [];
+var arrayofvideodivs = [];   //beta
 var connectedusers = [];
 var canvasColor = 'white';
 var canvas = document.getElementById('game');
@@ -184,6 +185,8 @@ var FPS = 30;
     var i;
     for (i = 0 ; i < arrayofballs.length ; i++){
     colorCircle(arrayofballs[i].pos.x,arrayofballs[i].pos.y,10, 'Yellow');
+    //move video of other balls to be on top of respective balls
+    $("#videoDiv"+i).css({ "position": "absolute", "top": arrayofballs[i].pos.y-150, "left": arrayofballs[i].pos.x-250 }); //beta
     //turn on video for broadcasting balls
     if (arrayofballs[i].broadcasting == 1 && arrayofvideos[i].srcObject == null) {arrayofvideos[i].srcObject = arrayofstreams[i];
     } else if(arrayofballs[i].broadcasting == 0) {arrayofvideos[i].src = "";}
@@ -376,10 +379,15 @@ var initiateWebRTCState = function() {
   arrayofpeerconnections[arrayofpeerconnections.length - 1].onaddstream = function (event) {
     canvasColor = 'Pink';
     console.log(event.stream);
-    var video = document.createElement("video");
+    var newDivWrapper = document.createElement('div');  //create new Div----
+    newDivWrapper.id = 'videoDiv' + arrayofvideodivs.length;
+    console.log(newDivWrapper.id);
+    var video = document.createElement('video');
     video.autoplay = true;
-    document.body.appendChild(video);
-    arrayofvideos.push(video);
+    newDivWrapper.appendChild(video);
+    arrayofvideodivs.push(newDivWrapper);       //----
+    document.body.appendChild(newDivWrapper);   //change this back to video
+    arrayofvideos.push(video);     
     arrayofstreams.push(event.stream);
     //video.srcObject = event.stream;
     if (initiator!=id) connectedusers.push(remote);

@@ -161,17 +161,17 @@ var FPS = 30;
    		 console.log(arrayofballs[0].pos.x);
    	 }*/
 
-   updateVolumesAndSize();
+   updateVolumesAndSizes();
   }
 
 
-  function updateVolumesAndSize(){
+  function updateVolumesAndSizes(){
       if (arrayofvideos.length == arrayofballs.length && arrayofballs.length > 0  && arrayofvideos.length > 0){
         var i;
       for (i=0;i<arrayofballs.length;i++) {
          arrayofvideos[i].volume=1/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
-         arrayofvideos[i].width=320/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
-         arrayofvideos[i].height=240/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
+         arrayofvideos[i].style.width= '' + 320/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2))) + 'px';
+         arrayofvideos[i].style.height= '' + 240/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2))) + 'px';
   }
     }
   }

@@ -67,7 +67,7 @@ function launchFullScreen() {
 fulscrn.addEventListener('click' , launchFullScreen);
 
 
-//Opens video on pressing spacebar
+//Opens video on pressing spacebar.
 /*
 document.addEventListener('keydown',function(e){
   if (e.keyCode==32) {

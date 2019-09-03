@@ -146,10 +146,10 @@ var ball = {
 var FPS = 30;
 
   function animate() {
-	  if (ball.pos.x > 0  && ball.pos.x < 1999 || ball.pos.x <0 && ball.direction.x >0  ||  ball.pos.x > 800 && ball.direction.x <0  ) {
+	  if (ball.pos.x > 0  && ball.pos.x < canvas.width || ball.pos.x < 0 && ball.direction.x > 0  ||  ball.pos.x > canvas.width && ball.direction.x < 0  ) {
       ball.pos.x += ball.direction.x * ball.speed;
 	  }
-	  if(ball.pos.y> 0  && ball.pos.y< 1999 || ball.pos.y <0 && ball.direction.y >0  ||  ball.pos.y > 1999 && ball.direction.y <0 ){
+	  if(ball.pos.y > 0  && ball.pos.y < canvas.height || ball.pos.y < 0 && ball.direction.y > 0  ||  ball.pos.y > canvas.height && ball.direction.y < 0 ){
 	  ball.pos.y += ball.direction.y * ball.speed;
 	  }
       ball.direction.x *= ball.brake;
@@ -178,13 +178,13 @@ var FPS = 30;
   function gameBack() {
     drawRect(0,0,canvas.width,canvas.height, canvasColor);
     //draw my ball
-    colorCircle(ball.pos.x,ball.pos.y,10, 'Red');
+    colorCircle(ball.pos.x,ball.pos.y,canvas.height/100, 'Red');
     //Move video to be on top of ball
     $("#videoDiv").css({ "position": "absolute", "top": ball.pos.y-150, "left": ball.pos.x-250 });
     //draw the other balls
     var i;
     for (i = 0 ; i < arrayofballs.length ; i++){
-    colorCircle(arrayofballs[i].pos.x,arrayofballs[i].pos.y,10, 'Yellow');
+    colorCircle(arrayofballs[i].pos.x,arrayofballs[i].pos.y,canvas.height/100, 'Yellow');
     //move video of other balls to be on top of respective balls
     $("#videoDiv"+i).css({ "position": "absolute", "top": arrayofballs[i].pos.y - parseInt(arrayofvideos[i].style.height)/2, "left": arrayofballs[i].pos.x-50 }); //beta
     arrayofvideos[i].style.width= '' + 320/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2))) + 'px';

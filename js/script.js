@@ -81,7 +81,6 @@ document.addEventListener('keydown',function(e){
 });
   }
 });
-
 document.addEventListener('keyup', function(e){
   if (e.keyCode==32) {
 //need code to close video again

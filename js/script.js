@@ -180,6 +180,8 @@ var FPS = 30;
     yourVideo.width = canvas.width/10;
     yourVideo.height = yourVideo.width;
     drawRect(0,0,canvas.width,canvas.height, canvasColor);
+    ctx.font = "30px Arial";
+    ctx.strokeText("Press and hold spacebar to make a call with your ball.", canvas.width/2, canvas.height/2);
     //draw my ball
     colorCircle(ball.pos.x,ball.pos.y,canvas.height/100, 'Red');
     //Move video to be on top of ball

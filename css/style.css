@@ -6,20 +6,20 @@ html, body {
   padding: 0;
 }
 
-video {
+/*video {
   background-color: #ddd;
   border-radius: 10px;
   z-index: 1000;
   margin: 10px 0px 0px 100px;
-  width: 320px;
-  height: 240px;
-}
+//  width: 320px;
+//  height: 240px;
+}*/
 
 #videoDiv{
-        width: 100px;
-        height: 100px;
-        position: relative;
-        margin: 200px auto 0;
+//        width: 100px;
+//        height: 100px;
+        position: absolute;
+//        margin: 100px auto 0;
 }
 
 
@@ -28,7 +28,7 @@ button {
   width: 654px;
 }
 canvas{ 
-border: 5px solid black;
+border: 1px solid black;
 //height: 1000px;
 //width: 1000px;
 }

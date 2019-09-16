@@ -175,19 +175,23 @@ var FPS = 30;
 
   // background code
   function gameBack() {
+    canvas.width = $(window).width()-100;
+    canvas.height = $(window).height()-100;
+    yourVideo.width = canvas.width/10;
+    yourVideo.height = yourVideo.width;
     drawRect(0,0,canvas.width,canvas.height, canvasColor);
     //draw my ball
     colorCircle(ball.pos.x,ball.pos.y,canvas.height/100, 'Red');
     //Move video to be on top of ball
-    $("#videoDiv").css({ "position": "absolute", "top": ball.pos.y-150, "left": ball.pos.x-250 });
+    $("#videoDiv").css({"position": "absolute", "top": ball.pos.y + yourVideo.height/10 , "left": ball.pos.x-yourVideo.width/2, "width":yourVideo.width, "height":yourVideo.height});
     //draw the other balls
     var i;
     for (i = 0 ; i < arrayofballs.length ; i++){
     colorCircle(arrayofballs[i].pos.x,arrayofballs[i].pos.y,canvas.height/100, 'Yellow');
     //move video of other balls to be on top of respective balls
-    $("#videoDiv"+i).css({ "position": "absolute", "top": arrayofballs[i].pos.y - parseInt(arrayofvideos[i].style.height)/2, "left": arrayofballs[i].pos.x-50 }); //beta
-    arrayofvideos[i].style.width= '' + 320/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2))) + 'px';
-    arrayofvideos[i].style.height= '' + 240/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2))) + 'px';
+    $("#videoDiv"+i).css({ "position": "absolute", "top": arrayofballs[i].pos.y + arrayofvideos[i].height/10, "left": arrayofballs[i].pos.x-arrayofvideos[i].width/2 }); //beta
+    arrayofvideos[i].width =  canvas.width/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
+    arrayofvideos[i].height = canvas.width/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
     //turn on video for broadcasting balls
     if (arrayofballs[i].broadcasting == 1 && arrayofvideos[i].srcObject == null) {arrayofvideos[i].srcObject = arrayofstreams[i];
     } else if(arrayofballs[i].broadcasting == 0) {arrayofvideos[i].src = "";}
@@ -231,14 +235,13 @@ var FPS = 30;
 
   setInterval(function() {
           animate();
-      gameBack();
+          gameBack();
     }, 1000/FPS);
   //-------------------------------------------------------
 
 
 //Create an account on Viagenie (http://numb.viagenie.ca/), and replace {'urls': 'turn:numb.viagenie.ca','credential': '13111994','username': 'bassemsafieldeen@gmail.com'} with the information from your account
-var servers = {'iceServers': [/*{'urls': 'stun:stun.services.mozilla.com'},*/ /*{'urls': 'stun:stun.l.google.com:19302'},*/ {'urls': 'turn:numb.viagenie.ca','credential': '13111994','username': 'bassemsafieldeen@gmail.com'}]};
-//var servers = {'iceServers': [{'urls': 'stun:stun.services.mozilla.com'}, {'urls': 'stun:stun.l.google.com:19302'}, {'urls': 'turn:numb.viagenie.ca','credential': 'beaver','username': 'webrtc.websitebeaver@gmail.com'}]};
+var servers = {'iceServers': [{'urls': 'stun:stun.services.mozilla.com'}, {'urls': 'stun:stun.l.google.com:19302'}, {'urls': 'turn:numb.viagenie.ca','credential': '13111994','username': 'bassemsafieldeen@gmail.com'}]};
 
 var arrayofvideos = [];
 

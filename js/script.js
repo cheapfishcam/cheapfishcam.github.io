@@ -175,8 +175,8 @@ var FPS = 30;
 
   // background code
   function gameBack() {
-    canvas.width = $(window).width()-100;
-    canvas.height = $(window).height()-100;
+    canvas.width = $(window).width()
+    canvas.height = $(window).height()
     yourVideo.width = canvas.width/10;
     yourVideo.height = yourVideo.width;
     drawRect(0,0,canvas.width,canvas.height, canvasColor);

@@ -28,8 +28,8 @@ var connectedusers = [];
 var canvasColor = 'white';
 var OtherBallsColor = 'Yellow';
 var canvas = document.getElementById('game');
-canvas.width = $(window).width()
-canvas.height = $(window).height()
+canvas.width = $(window).width() - $(window).width()/15
+canvas.height = $(window).height() - $(window).height()/15
 var ctx = canvas.getContext('2d');
 var broadcasting = 0;  //if this is 1, the user's video is turned on on the other users' screens. When it becomes 0 again, the video turns off. This variable is sent to the other users in animate().
 var myStream;
@@ -152,7 +152,7 @@ var FPS = 30;
   function gameBack() {
     drawRect(0,0,canvas.width,canvas.height, canvasColor);
     ctx.font = "30px Arial";
-    ctx.strokeText("Press and hold spacebar to make a call with your ball.", canvas.width/2, canvas.height/2);
+    ctx.strokeText("Press and hold spacebar to make a call with your ball.", canvas.width/3, canvas.height/2);
     //draw my ball
     colorCircle(ball.pos.x,ball.pos.y,canvas.height/100, 'Red');
     //Move video to be on top of ball

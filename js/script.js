@@ -15,8 +15,6 @@ var config = {
 var fb = firebase.initializeApp(config);
 var database = firebase.database().ref();
 var yourVideo = document.getElementById("yourVideo");
-//var friendsVideo = document.getElementById("friendsVideo");
-//var otherfriendsVideo = document.getElementById("otherfriendsVideo");
 var sender;
 var target;
 var initiator;
@@ -168,11 +166,17 @@ var FPS = 30;
     colorCircle(arrayofballs[i].pos.x,arrayofballs[i].pos.y,canvas.height/100, 'Yellow');
     //move video of other balls to be on top of respective balls
     $("#videoDiv"+i).css({ "position": "absolute", "top": arrayofballs[i].pos.y + canvas.height/50 + arrayofvideos[i].height/10, "left": arrayofballs[i].pos.x-arrayofvideos[i].width/2 }); //beta
-    arrayofvideos[i].width =  canvas.width/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
-    arrayofvideos[i].height = canvas.width/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
     //turn on video for broadcasting balls
-    if (arrayofballs[i].broadcasting == 1 && arrayofvideos[i].srcObject == null) {arrayofvideos[i].srcObject = arrayofstreams[i];
-    } else if(arrayofballs[i].broadcasting == 0) {arrayofvideos[i].src = "";}
+    if (arrayofballs[i].broadcasting == 1 && arrayofvideos[i].srcObject == null) {
+      arrayofvideos[i].srcObject = arrayofstreams[i];
+      arrayofvideos[i].width =  canvas.width/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
+      arrayofvideos[i].height = canvas.width/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
+    } 
+    else if(arrayofballs[i].broadcasting == 0) {
+      arrayofvideos[i].src = "";
+      arrayofvideos[i].width = 0;
+      arrayofvideos[i].height = 0;
+     }
   }
   }
   // Rectangle Code

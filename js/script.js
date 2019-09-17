@@ -29,6 +29,8 @@ var arrayofvideodivs = [];   //beta
 var connectedusers = [];
 var canvasColor = 'white';
 var canvas = document.getElementById('game');
+canvas.width = $(window).width()
+canvas.height = $(window).height()
 var ctx = canvas.getContext('2d');
 var broadcasting = 0;  //if this is 1, the user's video is turned on on the other users' screens. When it becomes 0 again, the video turns off. This variable is sent to the other users in animate().
 var myStream;
@@ -67,34 +69,13 @@ function launchFullScreen() {
 fulscrn.addEventListener('click' , launchFullScreen);
 
 
-//Opens video on pressing spacebar.
-/*
-document.addEventListener('keydown',function(e){
-  if (e.keyCode==32) {
-    navigator.mediaDevices.getUserMedia({audio:true, video:true})
-.then( (stream) =>  {
-  var i;
-  yourVideo.srcObject = stream;
-  for (i = 0 ; i < arrayofpeerconnections.length ; i++){
-      arrayofpeerconnections[i].addStream(stream);
-    }
-});
-  }
-});
-document.addEventListener('keyup', function(e){
-  if (e.keyCode==32) {
-//need code to close video again
-  }
-});
-*/
-
-
-
-//Opens video on pressing spacebar (a simpler, faster, implementation)
+//Opens video on pressing spacebar
 
 document.addEventListener('keydown',function(e){
   if (e.keyCode==32) {
     broadcasting = 1
+    yourVideo.width = canvas.width/10;
+    yourVideo.height = yourVideo.width;
     if (myStream != undefined && yourVideo.srcObject == null){yourVideo.srcObject = myStream;}
   }
 });
@@ -102,12 +83,11 @@ document.addEventListener('keydown',function(e){
 document.addEventListener('keyup', function(e){
   if (e.keyCode==32) {
     broadcasting = 0
+    yourVideo.width = 0;
+    yourVideo.height = 0;
     yourVideo.src="";
   }
 });
-
-
-
 
 
 
@@ -175,10 +155,6 @@ var FPS = 30;
 
   // background code
   function gameBack() {
-    canvas.width = $(window).width()
-    canvas.height = $(window).height()
-    yourVideo.width = canvas.width/10;
-    yourVideo.height = yourVideo.width;
     drawRect(0,0,canvas.width,canvas.height, canvasColor);
     ctx.font = "30px Arial";
     ctx.strokeText("Press and hold spacebar to make a call with your ball.", canvas.width/2, canvas.height/2);

@@ -177,6 +177,10 @@ var FPS = 30;
       arrayofvideos[i].width = 0;
       arrayofvideos[i].height = 0;
      }
+    else {
+      arrayofvideos[i].width =  canvas.width/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
+      arrayofvideos[i].height = canvas.width/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));   
+}
   }
   }
   // Rectangle Code

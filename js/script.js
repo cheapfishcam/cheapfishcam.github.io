@@ -20,12 +20,13 @@ var target;
 var initiator;
 var handleDataChannelOpen;
 var arrayofpeerconnections = [];
-var arrayofdatachannels = [];
+//var arrayofdatachannels = [];
 var arrayofrunning = [];
 var arrayofchannelopen = [];
 var arrayofvideodivs = [];   //beta
 var connectedusers = [];
 var canvasColor = 'white';
+var OtherBallsColor = 'Yellow';
 var canvas = document.getElementById('game');
 canvas.width = $(window).width()
 canvas.height = $(window).height()
@@ -68,7 +69,6 @@ fulscrn.addEventListener('click' , launchFullScreen);
 
 
 //Opens video on pressing spacebar
-
 document.addEventListener('keydown',function(e){
   if (e.keyCode==32) {
     broadcasting = 1
@@ -134,9 +134,6 @@ var FPS = 30;
 
       ballPosChannel.push({id:id, xpos:ball.pos.x, ypos:ball.pos.y, broadcasting:broadcasting});
 
-      /*if(arrayofballs.length>0){
-   		 console.log(arrayofballs[0].pos.x);
-   	 }*/
 
    updateVolumes();
   }
@@ -163,7 +160,7 @@ var FPS = 30;
     //draw the other balls
     var i;
     for (i = 0 ; i < arrayofballs.length ; i++){
-    colorCircle(arrayofballs[i].pos.x,arrayofballs[i].pos.y,canvas.height/100, 'Yellow');
+    colorCircle(arrayofballs[i].pos.x,arrayofballs[i].pos.y,canvas.height/100, OtherBallsColor);
     //move video of other balls to be on top of respective balls
     $("#videoDiv"+i).css({ "position": "absolute", "top": arrayofballs[i].pos.y + canvas.height/50 + arrayofvideos[i].height/10, "left": arrayofballs[i].pos.x-arrayofvideos[i].width/2 }); //beta
     //turn on video for broadcasting balls
@@ -222,6 +219,26 @@ var FPS = 30;
   setInterval(function() {
           animate();
           gameBack();
+        //remove dead balls
+          var i;
+          for (i=0;i<arrayofpeerconnections.length;i++) {
+             if (arrayofpeerconnections[i].iceConnectionState === 'disconnected'){
+                if(arrayofpeerconnections.length == arrayofballs.length && arrayofballs.length == arrayofrunning.length && arrayofrunning.length == arrayofchannelopen.length && arrayofchannelopen.length == arrayofvideos.length && arrayofvideos.length == arrayofvideodivs.length && arrayofvideodivs.length == arrayofstreams.length && arrayofstreams.length == connectedusers.length){
+                console.log(arrayofpeerconnections[i].iceConnectionState);
+                arrayofpeerconnections.splice(i,1); 
+                arrayofballs.splice(i,1);
+                arrayofrunning.splice(i,1);
+                arrayofchannelopen.splice(i,1);
+                arrayofvideos.splice(i,1);
+                arrayofvideodivs.splice(i,1);
+                arrayofstreams.splice(i,1);
+                connectedusers.splice(i,1);
+                var deadvideodiv = document.getElementById("videoDiv" + i);
+                document.body.removeChild(deadvideodiv);
+                i--;
+                      }
+                                                                                 } 
+                                                        }
     }, 1000/FPS);
   //-------------------------------------------------------
 
@@ -365,7 +382,6 @@ var initiateWebRTCState = function() {
   arrayofpeerconnections.push(new RTCPeerConnection(servers));
   arrayofrunning.push(false);
   arrayofchannelopen.push(0);
-
   arrayofpeerconnections[arrayofpeerconnections.length - 1].onaddstream = function (event) {
     canvasColor = 'Pink';
     console.log(event.stream);

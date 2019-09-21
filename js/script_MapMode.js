@@ -1,8 +1,3 @@
-//To DO: first, make a ball for each user. then, in an RTC connection, along with the voice info, send the position of the ball.
-
-
-
-//Create an account on Firebase, and use the credentials they give you in place of the following
 var config = {
     apiKey: "AIzaSyCymOh_cE-oA2jZo9PeruW1jacINPCxshQ",
     authDomain: "testingwebrtc-d087c.firebaseapp.com",
@@ -11,7 +6,6 @@ var config = {
     storageBucket: "testingwebrtc-d087c.appspot.com",
     messagingSenderId: "864357972075"
   };
-
 var fb = firebase.initializeApp(config);
 var database = firebase.database().ref();
 var yourVideo = document.getElementById("yourVideo");
@@ -21,16 +15,13 @@ var initiator;
 var handleDataChannelOpen;
 var arrayofpeerconnections = [];
 //var arrayofdatachannels = [];
+canvasWidth = $(window).width() - $(window).width()/15
+canvasHeight = $(window).height() - $(window).height()/15
 var arrayofrunning = [];
 var arrayofchannelopen = [];
 var arrayofvideodivs = [];   //beta
 var connectedusers = [];
-var canvasColor = 'white';
 var OtherBallsColor = 'Yellow';
-var canvas = document.getElementById('game');
-canvas.width = $(window).width() - $(window).width()/15
-canvas.height = $(window).height() - $(window).height()/15
-var ctx = canvas.getContext('2d');
 var broadcasting = 0;  //if this is 1, the user's video is turned on on the other users' screens. When it becomes 0 again, the video turns off. This variable is sent to the other users in animate().
 var myStream;
 var arrayofstreams = [];
@@ -40,39 +31,13 @@ var arrayofstreams = [];
 // after they have found each other in the announcement channel
 var id = Math.random().toString().replace('.', '');
 var remote;          // ID of the remote peer -- set once they send an offer
-//-----------------------------------------------------------------
-
-
-
-
-
-
-
-//Makes screen fullscreen
-
-
-
- var fulscrn  = document.getElementById('fullscrnbtn');
- var html = document.documentElement;
-
-function launchFullScreen() {
-  if(html.requestFullscreen) {
-    html.requestFullScreen();
-  } else if(html.mozRequestFullScreen) {
-    html.mozRequestFullScreen();
-  } else if(html.webkitRequestFullScreen) {
-    html.webkitRequestFullScreen();
-  }
-}
-
-fulscrn.addEventListener('click' , launchFullScreen);
-
+//--------------------------------------------------------
 
 //Opens video on pressing spacebar
 document.addEventListener('keydown',function(e){
   if (e.keyCode==32) {
-    broadcasting = 1
-    yourVideo.width = canvas.width/10;
+    broadcasting = 1;
+    yourVideo.width = canvasWidth/10;
     yourVideo.height = yourVideo.width;
     if (myStream != undefined && yourVideo.srcObject == null){yourVideo.srcObject = myStream;}
   }
@@ -80,142 +45,130 @@ document.addEventListener('keydown',function(e){
 
 document.addEventListener('keyup', function(e){
   if (e.keyCode==32) {
-    broadcasting = 0
+    broadcasting = 0;
     yourVideo.width = 0;
     yourVideo.height = 0;
     yourVideo.src="";
   }
 });
 
-
-
 var handleBallPosChannelMessage = function (message) {
-  //console.log("got position message from "+ message.val().id + " xpos " + message.val().xpos + "ypos " + message.val().ypos);
    var theSender = message.val().id;
    if(theSender != id && connectedusers != undefined  && connectedusers.length > 0 && arrayofballs.length == connectedusers.length) {
    var PosInArray = connectedusers.indexOf(theSender);
    if (PosInArray != -1){
-   arrayofballs[PosInArray].pos.x = message.val().xpos;
-   arrayofballs[PosInArray].pos.y = message.val().ypos;
+   arrayofballs[PosInArray].pos.lat = message.val().xpos;
+   arrayofballs[PosInArray].pos.lng = message.val().ypos;
    arrayofballs[PosInArray].broadcasting = message.val().broadcasting;
  }
 }
 };
-
 
 var ballPosChannel = database.child('positions');
 ballPosChannel.limitToLast(30).on('child_added', handleBallPosChannelMessage);
 
 
 
-var arrayofballs = [];
+    var arrayofballs = [];
+    var ball = {
+       pos: {lat: 0,lng: 0},
+       direction: { x: 0, y: 0 },
+       speed: 0.005,
+       brake: 0.9, // smaller number stop faster, max 0.99999
+       broadcasting: 0,
+               };
 
-var ball = {
-  pos: {x: 500,y: 300},
-  direction: { x: 0, y: 0 },
-  speed: 5,
-  brake: 0.9, // smaller number stop faster, max 0.99999
-  broadcasting: 0,
-};
+    var map = L.map('map');
+    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+		maxZoom: 18,
+		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+			'<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+			'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+		id: 'mapbox.streets'
+	}).addTo(map);
+
+    
+    var current_position;
+    var myBall;
+    function onLocationFound(e) {
+      //current_position = L.marker(e.latlng).addTo(map);
+      ball.pos.lat = e.latlng.lat;
+      ball.pos.lng = e.latlng.lng;
+      myBall = L.circle([ball.pos.lat, ball.pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
+                                 }
+
+    map.on('locationfound', onLocationFound);
+    map.locate({setView: true, maxZoom: 16});
+
+    document.addEventListener('keydown', event => {
+      if (event.keyCode === 37) { //Left
+        ball.direction.x += -1;
+      } else if (event.keyCode === 39) { //Right
+        ball.direction.x += 1;
+      } else if (event.keyCode === 38) { //Up
+        ball.direction.y += 1;
+      } else if (event.keyCode === 40) { //Down
+        ball.direction.y += -1;
+      }
+  });
 
 
-var FPS = 30;
-
-  function animate() {
-	  if (ball.pos.x > 0  && ball.pos.x < canvas.width || ball.pos.x < 0 && ball.direction.x > 0  ||  ball.pos.x > canvas.width && ball.direction.x < 0  ) {
-      ball.pos.x += ball.direction.x * ball.speed;
-	  }
-	  if(ball.pos.y > 0  && ball.pos.y < canvas.height || ball.pos.y < 0 && ball.direction.y > 0  ||  ball.pos.y > canvas.height && ball.direction.y < 0 ){
-	  ball.pos.y += ball.direction.y * ball.speed;
-	  }
-      ball.direction.x *= ball.brake;
-      ball.direction.y *= ball.brake;
-
-      ballPosChannel.push({id:id, xpos:ball.pos.x, ypos:ball.pos.y, broadcasting:broadcasting});
-
-
-   updateVolumes();
-  }
 
 
   function updateVolumes(){
       if (arrayofvideos.length == arrayofballs.length && arrayofballs.length > 0  && arrayofvideos.length > 0){
         var i;
       for (i=0;i<arrayofballs.length;i++) {
-         arrayofvideos[i].volume=1/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
+         arrayofvideos[i].volume=1/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
   }
     }
   }
 
-  // background code
-  function gameBack() {
-    drawRect(0,0,canvas.width,canvas.height, canvasColor);
-    ctx.font = "30px Arial";
-    ctx.strokeText("Press and hold spacebar to make a call with your ball.", canvas.width/3, canvas.height/2);
-    //draw my ball
-    colorCircle(ball.pos.x,ball.pos.y,canvas.height/100, 'Red');
-    //Move video to be on top of ball
-    $("#videoDiv").css({"position": "absolute", "top": ball.pos.y + canvas.height/50 + yourVideo.height/10 , "left": ball.pos.x-yourVideo.width/2, "width":yourVideo.width, "height":yourVideo.height});
-    //draw the other balls
-    var i;
-    for (i = 0 ; i < arrayofballs.length ; i++){
-    colorCircle(arrayofballs[i].pos.x,arrayofballs[i].pos.y,canvas.height/100, OtherBallsColor);
-    //move video of other balls to be on top of respective balls
-    $("#videoDiv"+i).css({ "position": "absolute", "top": arrayofballs[i].pos.y + canvas.height/50 + arrayofvideos[i].height/10, "left": arrayofballs[i].pos.x-arrayofvideos[i].width/2 }); //beta
-    //turn on video for broadcasting balls
-    if (arrayofballs[i].broadcasting == 1 && arrayofvideos[i].srcObject == null) {
-      arrayofvideos[i].srcObject = arrayofstreams[i];
-      arrayofvideos[i].width =  canvas.width/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
-      arrayofvideos[i].height = canvas.width/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
-    } 
-    else if(arrayofballs[i].broadcasting == 0) {
-      arrayofvideos[i].src = "";
-      arrayofvideos[i].width = 0;
-      arrayofvideos[i].height = 0;
-     }
-    else {
-      arrayofvideos[i].width =  canvas.width/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
-      arrayofvideos[i].height = canvas.width/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));   
-}
-  }
-  }
-  // Rectangle Code
-  function drawRect(leftX,topY,width,height, drawColor) {
-    ctx.fillStyle = drawColor;
-    ctx.fillRect(leftX,topY,width,height);
-  }
-  //Circle Code
-  function colorCircle(centerX,centerY,radius, drawColor) {
-    ctx.fillStyle = drawColor;
-    ctx.beginPath();
-    ctx.arc(centerX,centerY,radius,0,Math.PI*2,true);
-    ctx.closePath();
-    ctx.fill();
-  }
-  //Game Controls
-  document.addEventListener('keydown', event => {
-      if (event.keyCode === 37) { //Left
-        ball.direction.x += -1;
-      } else if (event.keyCode === 39) { //Right
-        ball.direction.x += 1;
-      } else if (event.keyCode === 38) { //Up
-        ball.direction.y += -1;
-      } else if (event.keyCode === 40) { //Down
-        ball.direction.y += 1;
-      }
-  });
 
 
+     function animate() {
+          ball.pos.lng += ball.direction.x * ball.speed;
+	  ball.pos.lat += ball.direction.y * ball.speed;
+	  ball.direction.x *= ball.brake;
+          ball.direction.y *= ball.brake;
+          ballPosChannel.push({id:id, xpos:ball.pos.lat, ypos:ball.pos.lng, broadcasting:broadcasting});
+          updateVolumes();
+                        }
 
-//  function yBall(offset) {
-//    ball.direction.y += offset;
-//  }
-//  function xBall(offset) {
-//    ball.direction.x += offset;
-//  }
+
+     function gameBack() {
+          if (myBall){map.removeLayer(myBall);}
+          myBall = L.circle([ball.pos.lat, ball.pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
+          map.setView(new L.LatLng(ball.pos.lat, ball.pos.lng), 8);
+         //Move video to be on top of ball
+         $("#videoDiv").css({"position": "absolute", "top": 0 + canvasHeight/50 + yourVideo.height/10 , "left": 0-yourVideo.width/2, "width":yourVideo.width, "height":yourVideo.height});
+         //draw the other balls
+         var i;
+         for (i = 0 ; i < arrayofballs.length ; i++){
+         L.circle([arrayofballs[i].pos.lat, arrayofballs[i].pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
+        //move video of other balls to be on top of respective balls
+         $("#videoDiv"+i).css({ "position": "absolute", "top": 10 + canvasHeight/50 + arrayofvideos[i].height/10, "left": 10-arrayofvideos[i].width/2 }); //beta
+        //turn on video for broadcasting balls
+        if (arrayofballs[i].broadcasting == 1 && arrayofvideos[i].srcObject == null) {
+           arrayofvideos[i].srcObject = arrayofstreams[i];
+           arrayofvideos[i].width =  canvasWidth/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
+           arrayofvideos[i].height = canvasWidth/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
+                                                                                     } 
+        else if(arrayofballs[i].broadcasting == 0) {
+           arrayofvideos[i].src = "";
+           arrayofvideos[i].width = 0;
+           arrayofvideos[i].height = 0;
+                                                   }
+        else {
+           arrayofvideos[i].width =  canvasWidth/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
+           arrayofvideos[i].height = canvasWidth/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));   
+             }
+                         }
+                                                     }
 
 
-  setInterval(function() {
+     var FPS = 30;
+     setInterval(function() {
           animate();
           gameBack();
         //remove dead balls
@@ -223,7 +176,6 @@ var FPS = 30;
           for (i=0;i<arrayofpeerconnections.length;i++) {
              if (arrayofpeerconnections[i].iceConnectionState === 'disconnected'){
                 if(arrayofpeerconnections.length == arrayofballs.length && arrayofballs.length == arrayofrunning.length && arrayofrunning.length == arrayofchannelopen.length && arrayofchannelopen.length == arrayofvideos.length && arrayofvideos.length == arrayofvideodivs.length && arrayofvideodivs.length == arrayofstreams.length && arrayofstreams.length == connectedusers.length){
-                console.log(arrayofpeerconnections[i].iceConnectionState);
                 arrayofpeerconnections.splice(i,1); 
                 arrayofballs.splice(i,1);
                 arrayofrunning.splice(i,1);
@@ -239,10 +191,12 @@ var FPS = 30;
                                                                                  } 
                                                         }
     }, 1000/FPS);
-  //-------------------------------------------------------
 
 
-//Create an account on Viagenie (http://numb.viagenie.ca/), and replace {'urls': 'turn:numb.viagenie.ca','credential': '13111994','username': 'bassemsafieldeen@gmail.com'} with the information from your account
+//-----------------------------------------------------
+
+
+
 var servers = {'iceServers': [{'urls': 'stun:stun.services.mozilla.com'}, {'urls': 'stun:stun.l.google.com:19302'}, {'urls': 'turn:numb.viagenie.ca','credential': '13111994','username': 'bassemsafieldeen@gmail.com'}]};
 
 var arrayofvideos = [];
@@ -255,47 +209,20 @@ function startnow() {
     .then(stream => myStream = stream);
 
 
-/* WebRTC Demo
- * Allows two clients to connect via WebRTC with Data Channels
- * Uses Firebase as a signalling server
- * http://fosterelli.co/getting-started-with-webrtc-data-channels
- */
-
-/* == Announcement Channel Functions ==
- * The 'announcement channel' allows clients to find each other on Firebase
- * These functions are for communicating through the announcement channel
- * This is part of the signalling server mechanism
- *
- * After two clients find each other on the announcement channel, they
- * can directly send messages to each other to negotiate a WebRTC connection
- */
-
 // Announce our arrival to the announcement channel
 var sendAnnounceChannelMessage = function() {
   announceChannel.remove(function() {announceChannel.push({id : id});});
 };
 
 // Handle an incoming message on the announcement channel
-
 var handleAnnounceChannelMessage = function(snapshot) {
   var message = snapshot.val();
-  console.log("got announcement from " + message.id);
-  console.log(connectedusers);
   if (message.id != id && (connectedusers.includes(message.id) == false)) {
     remote = message.id;
     initiateWebRTCState();
     initiator = id;
   }
 };
-
-/* == Signal Channel Functions ==
- * The signal channels are used to delegate the WebRTC connection between
- * two peers once they have found each other via the announcement channel.
- *
- * This is done on Firebase as well. Once the two peers communicate the
- * necessary information to 'find' each other via WebRTC, the signalling
- * channel is no longer used and the connection becomes peer-to-peer.
- */
 
 // Send a message to the remote client via Firebase
 var sendSignalChannelMessage = function(message) {
@@ -305,8 +232,6 @@ var sendSignalChannelMessage = function(message) {
 
 // Handle a WebRTC offer request from a remote client
 var handleOfferSignal = function(message) {
-    console.log("in handleoffer");
-    console.log(arrayofrunning);
   remote = message.sender;
   initiateWebRTCState();
   arrayofrunning[arrayofrunning.length - 1] = true;
@@ -335,8 +260,7 @@ var handleCandidateSignal = function(message) {
   arrayofpeerconnections[arrayofpeerconnections.length - 1].addIceCandidate(candidate);
 };
 
-// This is the general handler for a message from our remote client
-// Determine what type of message it is, and call the appropriate handler
+
 var handleSignalChannelMessage = function(snapshot) {
   var message = snapshot.val();
   var sender = message.sender;
@@ -347,8 +271,6 @@ var handleSignalChannelMessage = function(snapshot) {
 };
 
 
-// Handle ICE Candidate events by sending them to our remote
-// Send the ICE Candidates via the signal channel
 var handleICECandidate = function(event) {
   var candidate = event.candidate;
   if (candidate) {
@@ -364,8 +286,6 @@ var handleICECandidate = function(event) {
 // Function to offer to start a WebRTC connection with a peer
 var connect = function() {
   arrayofrunning[arrayofrunning.length - 1] = true;
-  console.log("in connect");
-  console.log(arrayofrunning);
   arrayofpeerconnections[arrayofpeerconnections.length - 1].onicecandidate = handleICECandidate;
   arrayofpeerconnections[arrayofpeerconnections.length - 1].createOffer(function(sessionDescription) {
     arrayofpeerconnections[arrayofpeerconnections.length - 1].setLocalDescription(sessionDescription);
@@ -382,8 +302,6 @@ var initiateWebRTCState = function() {
   arrayofrunning.push(false);
   arrayofchannelopen.push(0);
   arrayofpeerconnections[arrayofpeerconnections.length - 1].onaddstream = function (event) {
-    canvasColor = 'Pink';
-    console.log(event.stream);
     var newDivWrapper = document.createElement('div');  //create new Div----
     newDivWrapper.id = 'videoDiv' + arrayofvideodivs.length;
     console.log(newDivWrapper.id);
@@ -394,23 +312,17 @@ var initiateWebRTCState = function() {
     document.body.appendChild(newDivWrapper);   //change this back to video
     arrayofvideos.push(video);     
     arrayofstreams.push(event.stream);
-    //video.srcObject = event.stream;
     if (initiator!=id) connectedusers.push(remote);
     arrayofballs.push({
-      pos: {x: 500,y: 300},
+      pos: {lat: 0,lng: 0},
       direction: { x: 0, y: 0 },
-      speed: 5,
+      speed: 0.005,
       brake: 0.9, // smaller number stop faster, max 0.99999
       broadcasting: 0,
     });
     arrayofchannelopen[arrayofchannelopen.length - 1] = 1;
 
-    if (arrayofchannelopen.length > 1 && arrayofchannelopen[arrayofchannelopen.length - 2] == 0) {   // if a channel is open but the previous channel is not open,
-      //scrape the previous one. This problem happens only with the offerer (initiator).
-      console.log("removing dead channel");
-      console.log(arrayofchannelopen);
-      console.log(connectedusers);
-      console.log(arrayofrunning);
+    if (arrayofchannelopen.length > 1 && arrayofchannelopen[arrayofchannelopen.length - 2] == 0) { 
       arrayofchannelopen.splice(arrayofchannelopen.length - 2, 1);
       arrayofpeerconnections.splice(arrayofpeerconnections.length - 2, 1);
       arrayofrunning.splice(arrayofrunning.length - 2, 1);
@@ -433,10 +345,6 @@ signalChannel.limitToLast(30).on('child_added', handleSignalChannelMessage);
 
 
 
-// Send a message to the announcement channel
-// If our partner is already waiting, they will send us a WebRTC offer
-// over our Firebase signalling channel and we can begin delegating WebRTC
 sendAnnounceChannelMessage();
-
 
 }

@@ -141,7 +141,7 @@ ballPosChannel.limitToLast(30).on('child_added', handleBallPosChannelMessage);
           myBall = L.circle([ball.pos.lat, ball.pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
           map.setView(new L.LatLng(ball.pos.lat, ball.pos.lng), 8);
          //Move video to be on top of ball
-         $("#videoDiv").css({"position": "absolute", "top": 0 + canvasHeight/50 + yourVideo.height/10 , "left": 0-yourVideo.width/2, "width":yourVideo.width, "height":yourVideo.height});
+         $("#videoDiv").css({"position": "absolute", "top": canvasHeight/1.5 , "left": yourVideo.width/2, "width":yourVideo.width, "height":yourVideo.height});
          //draw the other balls
          var i;
          for (i = 0 ; i < arrayofballs.length ; i++){
@@ -151,8 +151,8 @@ ballPosChannel.limitToLast(30).on('child_added', handleBallPosChannelMessage);
         //turn on video for broadcasting balls
         if (arrayofballs[i].broadcasting == 1 && arrayofvideos[i].srcObject == null) {
            arrayofvideos[i].srcObject = arrayofstreams[i];
-           arrayofvideos[i].width =  canvasWidth/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
-           arrayofvideos[i].height = canvasWidth/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
+           arrayofvideos[i].width =  yourVideo.width/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
+           arrayofvideos[i].height = yourVideo.height/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
                                                                                      } 
         else if(arrayofballs[i].broadcasting == 0) {
            arrayofvideos[i].src = "";
@@ -160,8 +160,8 @@ ballPosChannel.limitToLast(30).on('child_added', handleBallPosChannelMessage);
            arrayofvideos[i].height = 0;
                                                    }
         else {
-           arrayofvideos[i].width =  canvasWidth/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
-           arrayofvideos[i].height = canvasWidth/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));   
+           arrayofvideos[i].width =  yourVideo.width/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
+           arrayofvideos[i].height = yourVideo.height/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));   
              }
                          }
                                                      }
@@ -304,6 +304,7 @@ var initiateWebRTCState = function() {
   arrayofpeerconnections[arrayofpeerconnections.length - 1].onaddstream = function (event) {
     var newDivWrapper = document.createElement('div');  //create new Div----
     newDivWrapper.id = 'videoDiv' + arrayofvideodivs.length;
+    newDivWrapper.style = "z-index: 100";
     console.log(newDivWrapper.id);
     var video = document.createElement('video');
     video.autoplay = true;

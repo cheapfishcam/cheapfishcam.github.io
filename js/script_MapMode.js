@@ -25,6 +25,8 @@ var OtherBallsColor = 'Yellow';
 var broadcasting = 0;  //if this is 1, the user's video is turned on on the other users' screens. When it becomes 0 again, the video turns off. This variable is sent to the other users in animate().
 var myStream;
 var arrayofstreams = [];
+var arrayofballs = [];
+var arrayofLcircles = [];
 
 // Generate this browser a unique ID
 // On Firebase peers use this unique ID to address messages to each other
@@ -69,7 +71,7 @@ ballPosChannel.limitToLast(30).on('child_added', handleBallPosChannelMessage);
 
 
 
-    var arrayofballs = [];
+
     var ball = {
        pos: {lat: 0,lng: 0},
        direction: { x: 0, y: 0 },
@@ -91,10 +93,10 @@ ballPosChannel.limitToLast(30).on('child_added', handleBallPosChannelMessage);
     var current_position;
     var myBall;
     function onLocationFound(e) {
-      //current_position = L.marker(e.latlng).addTo(map);
       ball.pos.lat = e.latlng.lat;
       ball.pos.lng = e.latlng.lng;
       myBall = L.circle([ball.pos.lat, ball.pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
+      //myBall.bindPopup('hello').openPopup();
                                  }
 
     map.on('locationfound', onLocationFound);
@@ -135,17 +137,18 @@ ballPosChannel.limitToLast(30).on('child_added', handleBallPosChannelMessage);
           updateVolumes();
                         }
 
-
      function gameBack() {
-          if (myBall){map.removeLayer(myBall);}
-          myBall = L.circle([ball.pos.lat, ball.pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
+          //if (myBall){map.removeLayer(myBall);}
+          //myBall = L.circle([ball.pos.lat, ball.pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
+          myBall.setLatLng([ball.pos.lat, ball.pos.lng]);
           map.setView(new L.LatLng(ball.pos.lat, ball.pos.lng), 8);
          //Move video to be on top of ball
          $("#videoDiv").css({"position": "absolute", "top": canvasHeight/1.5 , "left": yourVideo.width/2, "width":yourVideo.width, "height":yourVideo.height});
          //draw the other balls
          var i;
          for (i = 0 ; i < arrayofballs.length ; i++){
-         L.circle([arrayofballs[i].pos.lat, arrayofballs[i].pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
+         //L.circle([arrayofballs[i].pos.lat, arrayofballs[i].pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
+         arrayofLcircles[i].setLatLng([arrayofballs[i].pos.lat, arrayofballs[i].pos.lng]);
         //move video of other balls to be on top of respective balls
          $("#videoDiv"+i).css({ "position": "absolute", "top": 10 + canvasHeight/50 + arrayofvideos[i].height/10, "left": 10-arrayofvideos[i].width/2 }); //beta
         //turn on video for broadcasting balls
@@ -153,13 +156,19 @@ ballPosChannel.limitToLast(30).on('child_added', handleBallPosChannelMessage);
            arrayofvideos[i].srcObject = arrayofstreams[i];
            arrayofvideos[i].width =  yourVideo.width/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
            arrayofvideos[i].height = yourVideo.height/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
+           arrayofLcircles[i].bindPopup('<video id="testvid" width="420" height="315" autoplay></video>').openPopup();
+           var thetestvid = document.getElementById("testvid");
+           thetestvid.srcObject = arrayofstreams[i];
                                                                                      } 
         else if(arrayofballs[i].broadcasting == 0) {
+           arrayofLcircles[i].closePopup();
+           if(thetestvid){thetestvid.src="";}
            arrayofvideos[i].src = "";
            arrayofvideos[i].width = 0;
            arrayofvideos[i].height = 0;
                                                    }
         else {
+           if(arrayofLcircles[i].getPopup().isOpen() == false){arrayofLcircles[i].openPopup();}
            arrayofvideos[i].width =  yourVideo.width/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
            arrayofvideos[i].height = yourVideo.height/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));   
              }
@@ -175,9 +184,11 @@ ballPosChannel.limitToLast(30).on('child_added', handleBallPosChannelMessage);
           var i;
           for (i=0;i<arrayofpeerconnections.length;i++) {
              if (arrayofpeerconnections[i].iceConnectionState === 'disconnected'){
-                if(arrayofpeerconnections.length == arrayofballs.length && arrayofballs.length == arrayofrunning.length && arrayofrunning.length == arrayofchannelopen.length && arrayofchannelopen.length == arrayofvideos.length && arrayofvideos.length == arrayofvideodivs.length && arrayofvideodivs.length == arrayofstreams.length && arrayofstreams.length == connectedusers.length){
+                if(arrayofpeerconnections.length == arrayofballs.length && arrayofballs.length == arrayofLcircles.length && arrayofLcircles.length == arrayofrunning.length && arrayofrunning.length == arrayofchannelopen.length && arrayofchannelopen.length == arrayofvideos.length && arrayofvideos.length == arrayofvideodivs.length && arrayofvideodivs.length == arrayofstreams.length && arrayofstreams.length == connectedusers.length){
                 arrayofpeerconnections.splice(i,1); 
                 arrayofballs.splice(i,1);
+                map.removeLayer(arrayofLcircles[i]);
+                arrayofLcircles.splice(i,1);
                 arrayofrunning.splice(i,1);
                 arrayofchannelopen.splice(i,1);
                 arrayofvideos.splice(i,1);
@@ -321,6 +332,8 @@ var initiateWebRTCState = function() {
       brake: 0.9, // smaller number stop faster, max 0.99999
       broadcasting: 0,
     });
+    arrayofLcircles.push(L.circle([0, 0], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map));
+    //arrayofLcircles[arrayofLcircles.length-1].bindPopup('<video id="video"+initiator width="420" height="315" autoplay></video>')
     arrayofchannelopen[arrayofchannelopen.length - 1] = 1;
 
     if (arrayofchannelopen.length > 1 && arrayofchannelopen[arrayofchannelopen.length - 2] == 0) { 

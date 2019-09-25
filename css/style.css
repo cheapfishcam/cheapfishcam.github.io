@@ -120,3 +120,10 @@ border: 1px solid blue;
   width: 270px;
   height: 35px;
 }
+
+.leaflet-popup-tip {
+    background: opaque;
+    border: none;
+    box-shadow: none;
+    display:none;
+  }

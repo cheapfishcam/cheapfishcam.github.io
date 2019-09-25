@@ -19,9 +19,7 @@ canvasWidth = $(window).width() - $(window).width()/15
 canvasHeight = $(window).height() - $(window).height()/15
 var arrayofrunning = [];
 var arrayofchannelopen = [];
-var arrayofvideodivs = [];   //beta
 var connectedusers = [];
-var OtherBallsColor = 'Yellow';
 var broadcasting = 0;  //if this is 1, the user's video is turned on on the other users' screens. When it becomes 0 again, the video turns off. This variable is sent to the other users in animate().
 var myStream;
 var arrayofstreams = [];
@@ -78,6 +76,7 @@ ballPosChannel.limitToLast(30).on('child_added', handleBallPosChannelMessage);
        speed: 0.005,
        brake: 0.9, // smaller number stop faster, max 0.99999
        broadcasting: 0,
+       id: id,
                };
 
     var map = L.map('map');
@@ -121,7 +120,7 @@ ballPosChannel.limitToLast(30).on('child_added', handleBallPosChannelMessage);
       if (arrayofvideos.length == arrayofballs.length && arrayofballs.length > 0  && arrayofvideos.length > 0){
         var i;
       for (i=0;i<arrayofballs.length;i++) {
-         arrayofvideos[i].volume=1/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
+         arrayofvideos[i].volume=1/Math.max(1, 10 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
   }
     }
   }
@@ -130,48 +129,28 @@ ballPosChannel.limitToLast(30).on('child_added', handleBallPosChannelMessage);
 
      function animate() {
           ball.pos.lng += ball.direction.x * ball.speed;
-	  ball.pos.lat += ball.direction.y * ball.speed;
-	  ball.direction.x *= ball.brake;
+	        ball.pos.lat += ball.direction.y * ball.speed;
+	        ball.direction.x *= ball.brake;
           ball.direction.y *= ball.brake;
-          ballPosChannel.push({id:id, xpos:ball.pos.lat, ypos:ball.pos.lng, broadcasting:broadcasting});
+          ballPosChannel.push({id:ball.id, xpos:ball.pos.lat, ypos:ball.pos.lng, broadcasting:broadcasting});
           updateVolumes();
                         }
 
      function gameBack() {
-          //if (myBall){map.removeLayer(myBall);}
-          //myBall = L.circle([ball.pos.lat, ball.pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
           myBall.setLatLng([ball.pos.lat, ball.pos.lng]);
           map.setView(new L.LatLng(ball.pos.lat, ball.pos.lng), 8);
-         //Move video to be on top of ball
-         $("#videoDiv").css({"position": "absolute", "top": canvasHeight/1.5 , "left": yourVideo.width/2, "width":yourVideo.width, "height":yourVideo.height});
-         //draw the other balls
+         //update locations of other balls
          var i;
          for (i = 0 ; i < arrayofballs.length ; i++){
-         //L.circle([arrayofballs[i].pos.lat, arrayofballs[i].pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
          arrayofLcircles[i].setLatLng([arrayofballs[i].pos.lat, arrayofballs[i].pos.lng]);
-        //move video of other balls to be on top of respective balls
-         $("#videoDiv"+i).css({ "position": "absolute", "top": 10 + canvasHeight/50 + arrayofvideos[i].height/10, "left": 10-arrayofvideos[i].width/2 }); //beta
         //turn on video for broadcasting balls
-        if (arrayofballs[i].broadcasting == 1 && arrayofvideos[i].srcObject == null) {
-           arrayofvideos[i].srcObject = arrayofstreams[i];
-           arrayofvideos[i].width =  yourVideo.width/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
-           arrayofvideos[i].height = yourVideo.height/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
-           arrayofLcircles[i].bindPopup('<video id="testvid" width="420" height="315" autoplay></video>').openPopup();
-           var thetestvid = document.getElementById("testvid");
-           thetestvid.srcObject = arrayofstreams[i];
+        if (arrayofballs[i].broadcasting == 1) {
+           arrayofLcircles[i].getPopup().getContent().width = 100/Math.max(1, 10 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
+           arrayofLcircles[i].getPopup().getContent().height = 100/Math.max(1, 10 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
+           arrayofLcircles[i].openPopup();
                                                                                      } 
-        else if(arrayofballs[i].broadcasting == 0) {
-           arrayofLcircles[i].closePopup();
-           if(thetestvid){thetestvid.src="";}
-           arrayofvideos[i].src = "";
-           arrayofvideos[i].width = 0;
-           arrayofvideos[i].height = 0;
-                                                   }
-        else {
-           if(arrayofLcircles[i].getPopup().isOpen() == false){arrayofLcircles[i].openPopup();}
-           arrayofvideos[i].width =  yourVideo.width/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
-           arrayofvideos[i].height = yourVideo.height/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));   
-             }
+        else if(arrayofballs[i].broadcasting == 0) {arrayofLcircles[i].closePopup();}
+
                          }
                                                      }
 
@@ -184,7 +163,7 @@ ballPosChannel.limitToLast(30).on('child_added', handleBallPosChannelMessage);
           var i;
           for (i=0;i<arrayofpeerconnections.length;i++) {
              if (arrayofpeerconnections[i].iceConnectionState === 'disconnected'){
-                if(arrayofpeerconnections.length == arrayofballs.length && arrayofballs.length == arrayofLcircles.length && arrayofLcircles.length == arrayofrunning.length && arrayofrunning.length == arrayofchannelopen.length && arrayofchannelopen.length == arrayofvideos.length && arrayofvideos.length == arrayofvideodivs.length && arrayofvideodivs.length == arrayofstreams.length && arrayofstreams.length == connectedusers.length){
+                if(arrayofpeerconnections.length == arrayofballs.length && arrayofballs.length == arrayofLcircles.length && arrayofLcircles.length == arrayofrunning.length && arrayofrunning.length == arrayofchannelopen.length && arrayofchannelopen.length == arrayofvideos.length && arrayofvideos.length == arrayofstreams.length && arrayofstreams.length == connectedusers.length){
                 arrayofpeerconnections.splice(i,1); 
                 arrayofballs.splice(i,1);
                 map.removeLayer(arrayofLcircles[i]);
@@ -192,11 +171,8 @@ ballPosChannel.limitToLast(30).on('child_added', handleBallPosChannelMessage);
                 arrayofrunning.splice(i,1);
                 arrayofchannelopen.splice(i,1);
                 arrayofvideos.splice(i,1);
-                arrayofvideodivs.splice(i,1);
                 arrayofstreams.splice(i,1);
                 connectedusers.splice(i,1);
-                var deadvideodiv = document.getElementById("videoDiv" + i);
-                document.body.removeChild(deadvideodiv);
                 i--;
                       }
                                                                                  } 
@@ -222,22 +198,22 @@ function startnow() {
 
 // Announce our arrival to the announcement channel
 var sendAnnounceChannelMessage = function() {
-  announceChannel.remove(function() {announceChannel.push({id : id});});
+  announceChannel.remove(function() {announceChannel.push({id : ball.id});});
 };
 
 // Handle an incoming message on the announcement channel
 var handleAnnounceChannelMessage = function(snapshot) {
   var message = snapshot.val();
-  if (message.id != id && (connectedusers.includes(message.id) == false)) {
+  if (message.id != ball.id && (connectedusers.includes(message.id) == false)) {
     remote = message.id;
     initiateWebRTCState();
-    initiator = id;
+    initiator = ball.id;
   }
 };
 
 // Send a message to the remote client via Firebase
 var sendSignalChannelMessage = function(message) {
-  message.sender = id;
+  message.sender = ball.id;
   database.child('messages').child(remote).push(message);
 };
 
@@ -313,27 +289,26 @@ var initiateWebRTCState = function() {
   arrayofrunning.push(false);
   arrayofchannelopen.push(0);
   arrayofpeerconnections[arrayofpeerconnections.length - 1].onaddstream = function (event) {
-    var newDivWrapper = document.createElement('div');  //create new Div----
-    newDivWrapper.id = 'videoDiv' + arrayofvideodivs.length;
-    newDivWrapper.style = "z-index: 100";
-    console.log(newDivWrapper.id);
     var video = document.createElement('video');
     video.autoplay = true;
-    newDivWrapper.appendChild(video);
-    arrayofvideodivs.push(newDivWrapper);       //----
-    document.body.appendChild(newDivWrapper);   //change this back to video
     arrayofvideos.push(video);     
     arrayofstreams.push(event.stream);
-    if (initiator!=id) connectedusers.push(remote);
-    arrayofballs.push({
-      pos: {lat: 0,lng: 0},
-      direction: { x: 0, y: 0 },
-      speed: 0.005,
-      brake: 0.9, // smaller number stop faster, max 0.99999
-      broadcasting: 0,
-    });
+    if (initiator!=ball.id){connectedusers.push(remote);}
+      arrayofballs.push({
+        pos: {lat: 0,lng: 0},
+        direction: { x: 0, y: 0 },
+        speed: 0.005,
+        brake: 0.9, // smaller number stop faster, max 0.99999
+        broadcasting: 0,
+        id: remote,
+                      });                     
     arrayofLcircles.push(L.circle([0, 0], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map));
-    //arrayofLcircles[arrayofLcircles.length-1].bindPopup('<video id="video"+initiator width="420" height="315" autoplay></video>')
+    var tmpvid = L.DomUtil.create('video');
+    tmpvid.id = 'video'+arrayofballs[arrayofballs.length-1].id;
+    tmpvid.autoplay = true;
+    tmpvid.height = 100; tmpvid.width = 100;
+    tmpvid.srcObject = event.stream;
+    arrayofLcircles[arrayofLcircles.length-1].bindPopup(tmpvid).openPopup().closePopup();
     arrayofchannelopen[arrayofchannelopen.length - 1] = 1;
 
     if (arrayofchannelopen.length > 1 && arrayofchannelopen[arrayofchannelopen.length - 2] == 0) { 
@@ -347,8 +322,8 @@ var initiateWebRTCState = function() {
   };
 
   navigator.mediaDevices.getUserMedia({audio:true, video:true})
-  .then(stream => (initiator==id?arrayofpeerconnections[arrayofpeerconnections.length - 1].addStream(stream):console.log("not initiator"))    )
-  .then(() => (initiator==id?connect():console.log("not initiator")));
+  .then(stream => (initiator==ball.id?arrayofpeerconnections[arrayofpeerconnections.length - 1].addStream(stream):console.log("not initiator"))    )
+  .then(() => (initiator==ball.id?connect():console.log("not initiator")));
 
 };
 

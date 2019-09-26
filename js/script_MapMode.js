@@ -83,7 +83,6 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=p
 }).addTo(map);
 
     
-var current_position;
 var myBall;
 function onLocationFound(e) {
   ball.pos.lat = e.latlng.lat;
@@ -133,7 +132,7 @@ function animate() {
 }
 
 function gameBack() {
-  myBall.setLatLng([ball.pos.lat, ball.pos.lng]);
+  if(myBall) myBall.setLatLng([ball.pos.lat, ball.pos.lng]);
   map.setView(new L.LatLng(ball.pos.lat, ball.pos.lng), 8);
   $("#videoDiv").css({"position": "absolute", "top": canvasHeight/1.5 , "left": yourVideo.width/2, "width":yourVideo.width, "height":yourVideo.height});
   //update locations of other balls
@@ -146,7 +145,9 @@ function gameBack() {
       arrayofLcircles[i].getPopup().getContent().height = 100/Math.max(1, 10 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
       arrayofLcircles[i].openPopup();
     } 
-    else if(arrayofballs[i].broadcasting == 0) {arrayofLcircles[i].closePopup();}
+    else if(arrayofballs[i].broadcasting == 0) {
+      arrayofLcircles[i].closePopup();
+    }
   }
 }
 
@@ -295,7 +296,7 @@ function startnow() {
       tmpvid.autoplay = true;
       tmpvid.height = 100; tmpvid.width = 100;
       tmpvid.srcObject = event.stream;
-      arrayofLcircles[arrayofLcircles.length-1].bindPopup(tmpvid).openPopup().closePopup();
+      arrayofLcircles[arrayofLcircles.length-1].bindPopup(tmpvid);
       arrayofchannelopen[arrayofchannelopen.length - 1] = 1;
 
       if (arrayofchannelopen.length > 1 && arrayofchannelopen[arrayofchannelopen.length - 2] == 0) { 

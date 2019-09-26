@@ -23,6 +23,7 @@ var broadcasting = 0;  //if this is 1, the user's video is turned on on the othe
 var myStream;
 var arrayofballs = [];
 var arrayofLcircles = [];
+var arrayofstreams = [];
 
 // Generate this browser a unique ID
 // On Firebase peers use this unique ID to address messages to each other
@@ -143,10 +144,14 @@ function gameBack() {
     if (arrayofballs[i].broadcasting == 1) {
       arrayofLcircles[i].getPopup().getContent().width = 100/Math.max(1, 10 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
       arrayofLcircles[i].getPopup().getContent().height = 100/Math.max(1, 10 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
-      arrayofLcircles[i].openPopup();
+      if(arrayofLcircles[i].getPopup().isOpen() == false){
+        arrayofLcircles[i].getPopup().getContent().srcObject = arrayofstreams[i];
+        arrayofLcircles[i].openPopup();
+      }
     } 
-    else if(arrayofballs[i].broadcasting == 0) {
+    else if(arrayofballs[i].broadcasting == 0 && arrayofLcircles[i].getPopup().isOpen()) {
       arrayofLcircles[i].closePopup();
+      arrayofLcircles[i].getPopup().getContent().src = "";
     }
   }
 }
@@ -160,12 +165,13 @@ setInterval(function() {
   var i;
   for (i=0;i<arrayofpeerconnections.length;i++) {
     if (arrayofpeerconnections[i].iceConnectionState === 'disconnected'){
-      if(arrayofpeerconnections.length == arrayofballs.length && arrayofballs.length == arrayofLcircles.length && arrayofLcircles.length == arrayofrunning.length && arrayofrunning.length == arrayofchannelopen.length && arrayofchannelopen.length == connectedusers.length){
+      if(arrayofpeerconnections.length == arrayofballs.length && arrayofballs.length == arrayofLcircles.length && arrayofLcircles.length == arrayofrunning.length && arrayofrunning.length == arrayofchannelopen.length && arrayofchannelopen.length == connectedusers.length && connectedusers.length == arrayofstreams.length ){
         arrayofpeerconnections.splice(i,1); 
         arrayofballs.splice(i,1);
         map.removeLayer(arrayofLcircles[i]);
         arrayofLcircles.splice(i,1);
         arrayofrunning.splice(i,1);
+        arrayofstreams.splice(i,1);
         arrayofchannelopen.splice(i,1);
         connectedusers.splice(i,1);
         i--;
@@ -291,8 +297,8 @@ function startnow() {
         id: remote,
       });                     
       arrayofLcircles.push(L.circle([0, 0], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map));
+      arrayofstreams.push(event.stream);
       var tmpvid = L.DomUtil.create('video');
-      tmpvid.id = 'video'+arrayofballs[arrayofballs.length-1].id;
       tmpvid.autoplay = true;
       tmpvid.height = 100; tmpvid.width = 100;
       tmpvid.srcObject = event.stream;

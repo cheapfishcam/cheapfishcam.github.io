@@ -24,6 +24,7 @@ var myStream;
 var arrayofballs = [];
 var arrayofLcircles = [];
 var arrayofstreams = [];
+var radioSource = "https://tunein.com/embed/player/s76590?autoplay=true";
 
 // Generate this browser a unique ID
 // On Firebase peers use this unique ID to address messages to each other
@@ -57,7 +58,7 @@ document.getElementById("radioButton").addEventListener("click", function(){
   var theRadio = document.getElementById("radioIframe");
   if(theButton.value === "off"){
     theButton.value = "on"; 
-    theRadio.src = "https://tunein.com/embed/player/s76590?autoplay=true";
+    theRadio.src = radioSource;
   }
   else{
     theButton.value = "off"; 
@@ -108,6 +109,7 @@ function onLocationFound(e) {
   ball.pos.lat = e.latlng.lat;
   ball.pos.lng = e.latlng.lng;
   myBall = L.circle([ball.pos.lat, ball.pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
+  console.log(getCountryName(L.latLng(ball.pos.lat, ball.pos.lng)));
 }
 
 map.on('locationfound', onLocationFound);
@@ -123,7 +125,9 @@ function getCountryName(latlng){
           if (r) {
             var tmp = r.name.split(", ");
             var country = tmp[tmp.length-1];
-            return country; 
+            console.log("test");
+            console.log(country);
+            //return country; 
           }
         });
 }
@@ -172,8 +176,8 @@ function updateVolumes(){
 
 function animate() {
   ball.pos.lng += ball.direction.x * ball.speed;
-	ball.pos.lat += ball.direction.y * ball.speed;
-	ball.direction.x *= ball.brake;
+  ball.pos.lat += ball.direction.y * ball.speed;
+  ball.direction.x *= ball.brake;
   ball.direction.y *= ball.brake;
   ballPosChannel.push({id:ball.id, xpos:ball.pos.lat, ypos:ball.pos.lng, broadcasting:broadcasting});
   updateVolumes();
@@ -208,6 +212,9 @@ var FPS = 30;
 setInterval(function() {
   animate();
   gameBack();
+  //update radio station
+  //console.log(getCountryName(L.latLng(50, 50)));
+  //if(ball){radioSource = radios.window[getCountryName(L.latLng(ball.pos.lat, ball.pos.lng))];}
   //remove dead balls
   var i;
   for (i=0;i<arrayofpeerconnections.length;i++) {

@@ -51,6 +51,20 @@ document.addEventListener('keyup', function(e){
   }
 });
 
+//Toggle Radio
+document.getElementById("radioButton").addEventListener("click", function(){
+  var theButton = document.getElementById("radioButton");
+  var theRadio = document.getElementById("radioIframe");
+  if(theButton.value === "off"){
+    theButton.value = "on"; 
+    theRadio.src = "https://tunein.com/embed/player/s76590?autoplay=true";
+  }
+  else{
+    theButton.value = "off"; 
+    theRadio.src = "";
+  }
+});
+
 var handleBallPosChannelMessage = function (message) {
    var theSender = message.val().id;
    if(theSender != id && connectedusers != undefined  && connectedusers.length > 0 && arrayofballs.length == connectedusers.length) {

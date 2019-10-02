@@ -216,7 +216,7 @@ setInterval(function() {
   //console.log(getCountryName(L.latLng(50, 50)));
   //if(ball){radioSource = radios.window[getCountryName(L.latLng(ball.pos.lat, ball.pos.lng))];}
   //remove dead balls
-  var i;
+/*  var i;
   for (i=0;i<arrayofpeerconnections.length;i++) {
     if (arrayofpeerconnections[i].iceConnectionState === 'disconnected'){
       if(arrayofpeerconnections.length == arrayofballs.length && arrayofballs.length == arrayofLcircles.length && arrayofLcircles.length == arrayofrunning.length && arrayofrunning.length == arrayofchannelopen.length && arrayofchannelopen.length == connectedusers.length && connectedusers.length == arrayofstreams.length ){
@@ -231,7 +231,7 @@ setInterval(function() {
         i--;
       }
     } 
-  }
+  }*/
 }, 1000/FPS);
 
 

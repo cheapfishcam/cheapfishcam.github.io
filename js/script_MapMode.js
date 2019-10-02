@@ -91,6 +91,8 @@ var ball = {
   id: id,
 };
 
+
+//The Map (see possible map style from mapbox here: https://gis.stackexchange.com/questions/244788/map-ids-to-add-mapbox-basemaps-to-leaflet-or-openlayers)
 var map = L.map('map');
 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
 	maxZoom: 18,
@@ -126,15 +128,15 @@ function getCountryName(latlng){
         });
 }
 
-//night and day zones
-var t = L.terminator();
+//night and day zones using terminator
+/*var t = L.terminator();
 t.addTo(map);
 setInterval(function(){updateTerminator(t)}, 500);
 function updateTerminator(t) {
   var t2 = L.terminator();
   t.setLatLngs(t2.getLatLngs());
   t.redraw();
-}
+}*/
 
 
 

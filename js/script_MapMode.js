@@ -109,7 +109,7 @@ function onLocationFound(e) {
   ball.pos.lat = e.latlng.lat;
   ball.pos.lng = e.latlng.lng;
   myBall = L.circle([ball.pos.lat, ball.pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
-  console.log(getCountryName(L.latLng(ball.pos.lat, ball.pos.lng)));
+  //console.log(getCountryName(L.latLng(ball.pos.lat, ball.pos.lng)));
 }
 
 map.on('locationfound', onLocationFound);
@@ -125,9 +125,9 @@ function getCountryName(latlng){
           if (r) {
             var tmp = r.name.split(", ");
             var country = tmp[tmp.length-1];
-            console.log("test");
-            console.log(country);
-            //return country; 
+            //console.log("test");
+            //console.log(country);
+            return country; 
           }
         });
 }

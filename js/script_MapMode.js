@@ -65,6 +65,9 @@ document.getElementById("radioButton").addEventListener("click", function(){
   }
 });
 
+
+
+
 var handleBallPosChannelMessage = function (message) {
    var theSender = message.val().id;
    if(theSender != id && connectedusers != undefined  && connectedusers.length > 0 && arrayofballs.length == connectedusers.length) {
@@ -107,6 +110,24 @@ function onLocationFound(e) {
 
 map.on('locationfound', onLocationFound);
 map.locate({setView: true, maxZoom: 16});
+
+
+//Function to get country name given a latLng object
+function getCountryName(latlng){
+  var geocoder = L.Control.Geocoder.nominatim();
+  var marker;
+  geocoder.reverse(latlng, map.options.crs.scale(map.getZoom()), function(results) {
+          var r = results[0];
+          if (r) {
+            var tmp = r.name.split(", ");
+            var country = tmp[tmp.length-1];
+            return country; 
+          }
+        });
+}
+
+
+
 
 document.addEventListener('keydown', event => {
   if (event.keyCode === 37) { //Left

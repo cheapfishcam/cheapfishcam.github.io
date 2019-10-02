@@ -219,7 +219,7 @@ var FPS = 30;
           animate();
           gameBack();
         //remove dead balls
-          var i;
+          /*var i;
           for (i=0;i<arrayofpeerconnections.length;i++) {
              if (arrayofpeerconnections[i].iceConnectionState === 'disconnected'){
                 if(arrayofpeerconnections.length == arrayofballs.length && arrayofballs.length == arrayofrunning.length && arrayofrunning.length == arrayofchannelopen.length && arrayofchannelopen.length == arrayofvideos.length && arrayofvideos.length == arrayofvideodivs.length && arrayofvideodivs.length == arrayofstreams.length && arrayofstreams.length == connectedusers.length){
@@ -237,7 +237,7 @@ var FPS = 30;
                 i--;
                       }
                                                                                  } 
-                                                        }
+                                                        }*/
     }, 1000/FPS);
   //-------------------------------------------------------
 

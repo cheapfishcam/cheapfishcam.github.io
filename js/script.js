@@ -219,25 +219,25 @@ var FPS = 30;
           animate();
           gameBack();
         //remove dead balls
-          /*var i;
+          var i;
           for (i=0;i<arrayofpeerconnections.length;i++) {
              if (arrayofpeerconnections[i].iceConnectionState === 'disconnected'){
                 if(arrayofpeerconnections.length == arrayofballs.length && arrayofballs.length == arrayofrunning.length && arrayofrunning.length == arrayofchannelopen.length && arrayofchannelopen.length == arrayofvideos.length && arrayofvideos.length == arrayofvideodivs.length && arrayofvideodivs.length == arrayofstreams.length && arrayofstreams.length == connectedusers.length){
-                console.log(arrayofpeerconnections[i].iceConnectionState);
-                arrayofpeerconnections.splice(i,1); 
-                arrayofballs.splice(i,1);
-                arrayofrunning.splice(i,1);
-                arrayofchannelopen.splice(i,1);
-                arrayofvideos.splice(i,1);
-                arrayofvideodivs.splice(i,1);
-                arrayofstreams.splice(i,1);
-                connectedusers.splice(i,1);
-                var deadvideodiv = document.getElementById("videoDiv" + i);
-                document.body.removeChild(deadvideodiv);
-                i--;
-                      }
-                                                                                 } 
-                                                        }*/
+                  console.log(arrayofpeerconnections[i].iceConnectionState);
+                  arrayofpeerconnections.splice(i,1); 
+                  arrayofballs.splice(i,1);
+                  arrayofrunning.splice(i,1);
+                  arrayofchannelopen.splice(i,1);
+                  arrayofvideos.splice(i,1);
+                  arrayofvideodivs.splice(i,1);
+                  arrayofstreams.splice(i,1);
+                  connectedusers.splice(i,1);
+                  var deadvideodiv = document.getElementById("videoDiv" + i);
+                  document.body.removeChild(deadvideodiv);
+                  i--;
+                }
+              } 
+          }
     }, 1000/FPS);
   //-------------------------------------------------------
 

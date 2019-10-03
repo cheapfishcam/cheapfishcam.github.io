@@ -25,6 +25,7 @@ var arrayofballs = [];
 var arrayofLcircles = [];
 var arrayofstreams = [];
 var radioSource = "https://tunein.com/embed/player/s76590?autoplay=true";
+//var country;  //country of ball
 
 // Generate this browser a unique ID
 // On Firebase peers use this unique ID to address messages to each other
@@ -109,7 +110,6 @@ function onLocationFound(e) {
   ball.pos.lat = e.latlng.lat;
   ball.pos.lng = e.latlng.lng;
   myBall = L.circle([ball.pos.lat, ball.pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
-  //console.log(getCountryName(L.latLng(ball.pos.lat, ball.pos.lng)));
 }
 
 map.on('locationfound', onLocationFound);
@@ -117,20 +117,18 @@ map.locate({setView: true, maxZoom: 16});
 
 
 //Function to get country name given a latLng object
-function getCountryName(latlng){
+//There are many options for reverse geocoding service providers. see here (https://github.com/perliedman/leaflet-control-geocoder)
+/*function getCountryName(latlng){
+  //var geocoder = L.Control.Geocoder.opencage('f524a6e4c7544b06a00baec0c2a435a1');
   var geocoder = L.Control.Geocoder.nominatim();
-  var marker;
   geocoder.reverse(latlng, map.options.crs.scale(map.getZoom()), function(results) {
-          var r = results[0];
-          if (r) {
-            var tmp = r.name.split(", ");
-            var country = tmp[tmp.length-1];
-            //console.log("test");
-            //console.log(country);
-            return country; 
-          }
-        });
-}
+    var r = results[0];
+    if (r) {
+      var tmp = r.name.split(", ");
+      country = tmp[tmp.length-1];
+    }
+  });
+}*/
 
 //night and day zones using terminator
 /*var t = L.terminator();
@@ -213,10 +211,14 @@ setInterval(function() {
   animate();
   gameBack();
   //update radio station
-  //console.log(getCountryName(L.latLng(50, 50)));
-  //if(ball){radioSource = radios.window[getCountryName(L.latLng(ball.pos.lat, ball.pos.lng))];}
+  /*if(ball){
+    console.log(getCountryName(L.latLng(ball.pos.lat, ball.pos.lng)));
+    if(radios.window[getCountryName(L.latLng(ball.pos.lat, ball.pos.lng))]){
+      radioSource = radios.window[getCountryName(L.latLng(ball.pos.lat, ball.pos.lng))];
+    }
+  }*/
   //remove dead balls
-/*  var i;
+  var i;
   for (i=0;i<arrayofpeerconnections.length;i++) {
     if (arrayofpeerconnections[i].iceConnectionState === 'disconnected'){
       if(arrayofpeerconnections.length == arrayofballs.length && arrayofballs.length == arrayofLcircles.length && arrayofLcircles.length == arrayofrunning.length && arrayofrunning.length == arrayofchannelopen.length && arrayofchannelopen.length == connectedusers.length && connectedusers.length == arrayofstreams.length ){
@@ -231,7 +233,7 @@ setInterval(function() {
         i--;
       }
     } 
-  }*/
+  }
 }, 1000/FPS);
 
 

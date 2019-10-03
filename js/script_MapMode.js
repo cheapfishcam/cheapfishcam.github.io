@@ -310,7 +310,10 @@ function startnow() {
   // Handle an ICE candidate notification from the remote client
   var handleCandidateSignal = function(message) {
     var candidate = new RTCIceCandidate(message);
-    arrayofpeerconnections[arrayofpeerconnections.length - 1].addIceCandidate(candidate);
+    console.log("current Remote description ",  arrayofpeerconnections[arrayofpeerconnections.length - 1].currentRemoteDescription);
+    if(arrayofpeerconnections[arrayofpeerconnections.length - 1].currentRemoteDescription){
+      arrayofpeerconnections[arrayofpeerconnections.length - 1].addIceCandidate(candidate);
+    } else { console.log("no remote description. won't work, bitch"); }
   };
 
 

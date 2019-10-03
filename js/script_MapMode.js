@@ -24,7 +24,9 @@ var myStream;
 var arrayofballs = [];
 var arrayofLcircles = [];
 var arrayofstreams = [];
-var radioSource = "https://tunein.com/embed/player/s76590?autoplay=true";
+var radioSource = "";
+var theRadio = document.getElementById("radioIframe");
+theRadio.src = "";
 //var country;  //country of ball
 
 // Generate this browser a unique ID
@@ -54,9 +56,8 @@ document.addEventListener('keyup', function(e){
 });
 
 //Toggle Radio
-document.getElementById("radioButton").addEventListener("click", function(){
+/*document.getElementById("radioButton").addEventListener("click", function(){
   var theButton = document.getElementById("radioButton");
-  var theRadio = document.getElementById("radioIframe");
   if(theButton.value === "off"){
     theButton.value = "on"; 
     theRadio.src = radioSource;
@@ -65,7 +66,7 @@ document.getElementById("radioButton").addEventListener("click", function(){
     theButton.value = "off"; 
     theRadio.src = "";
   }
-});
+});*/
 
 
 
@@ -162,6 +163,7 @@ document.addEventListener('keydown', event => {
 
 
 function updateVolumes(){
+  //update volumes of calling balls
   if (arrayofLcircles.length > 0 && arrayofLcircles.length == arrayofballs.length){
     var i;
     for (i=0;i<arrayofLcircles.length;i++) {
@@ -170,15 +172,12 @@ function updateVolumes(){
   }
 }
 
-
-
 function animate() {
   ball.pos.lng += ball.direction.x * ball.speed;
   ball.pos.lat += ball.direction.y * ball.speed;
   ball.direction.x *= ball.brake;
   ball.direction.y *= ball.brake;
   ballPosChannel.push({id:ball.id, xpos:ball.pos.lat, ypos:ball.pos.lng, broadcasting:broadcasting});
-  updateVolumes();
 }
 
 function gameBack() {
@@ -186,8 +185,7 @@ function gameBack() {
   map.setView(new L.LatLng(ball.pos.lat, ball.pos.lng), 8);
   $("#videoDiv").css({"position": "absolute", "top": canvasHeight/1.5 , "left": yourVideo.width/2, "width":yourVideo.width, "height":yourVideo.height});
   //update locations of other balls
-  var i;
-  for (i = 0 ; i < arrayofballs.length ; i++){
+  for (let i = 0 ; i < arrayofballs.length ; i++){
     arrayofLcircles[i].setLatLng([arrayofballs[i].pos.lat, arrayofballs[i].pos.lng]);
     //turn on video for broadcasting balls
     if (arrayofballs[i].broadcasting == 1) {
@@ -205,21 +203,8 @@ function gameBack() {
   }
 }
 
-
-var FPS = 30;
-setInterval(function() {
-  animate();
-  gameBack();
-  //update radio station
-  /*if(ball){
-    console.log(getCountryName(L.latLng(ball.pos.lat, ball.pos.lng)));
-    if(radios.window[getCountryName(L.latLng(ball.pos.lat, ball.pos.lng))]){
-      radioSource = radios.window[getCountryName(L.latLng(ball.pos.lat, ball.pos.lng))];
-    }
-  }*/
-  //remove dead balls
-  var i;
-  for (i=0;i<arrayofpeerconnections.length;i++) {
+function removeDeadBalls() {
+  for (let i=0;i<arrayofpeerconnections.length;i++) {
     if (arrayofpeerconnections[i].iceConnectionState === 'disconnected'){
       if(arrayofpeerconnections.length == arrayofballs.length && arrayofballs.length == arrayofLcircles.length && arrayofLcircles.length == arrayofrunning.length && arrayofrunning.length == arrayofchannelopen.length && arrayofchannelopen.length == connectedusers.length && connectedusers.length == arrayofstreams.length ){
         arrayofpeerconnections.splice(i,1); 
@@ -234,6 +219,34 @@ setInterval(function() {
       }
     } 
   }
+}
+
+function updateRadioStation(){
+  var nearATower = 0;
+  for (let i = 0; i < radios.length; i++){
+    if(10 * Math.sqrt(Math.pow((ball.pos.lat - radios[i].latlng.lat),2) + Math.pow((ball.pos.lng - radios[i].latlng.lng),2)) < 10){
+      //theRadio.setVolume(1/Math.max(1, 10 * Math.sqrt(Math.pow((ball.pos.lat - radios[i].latlng.lat),2) + Math.pow((ball.pos.lng - radios[i].latlng.lng),2))))
+      nearATower = 1;
+      if(radios[i].src != radioSource){
+        radioSource = radios[i].src;
+        theRadio.src = radios[i].src;
+      }
+    }
+  }
+  if(nearATower == 0 && radioSource != ""){
+    radioSource = "";
+    theRadio.src = "";
+  } 
+}
+
+
+var FPS = 30;
+setInterval(function() {
+  animate();
+  gameBack();
+  removeDeadBalls();
+  updateRadioStation();
+  updateVolumes();
 }, 1000/FPS);
 
 

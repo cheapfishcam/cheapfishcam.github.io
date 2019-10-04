@@ -374,7 +374,7 @@ function startnow() {
       tmpvid.autoplay = true;
       tmpvid.height = 100; tmpvid.width = 100;
       tmpvid.srcObject = event.stream;
-      arrayofLcircles[arrayofLcircles.length-1].bindPopup(tmpvid);
+      arrayofLcircles[arrayofLcircles.length-1].bindPopup(tmpvid, {maxWidth: "auto", closeButton: false});
       arrayofchannelopen[arrayofchannelopen.length - 1] = 1;
 
       if (arrayofchannelopen.length > 1 && arrayofchannelopen[arrayofchannelopen.length - 2] == 0) { 

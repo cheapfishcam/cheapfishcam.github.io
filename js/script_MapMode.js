@@ -283,7 +283,7 @@ setInterval(function() {
 //     if (candidate) {
 //       candidate = candidate.toJSON();
 //       candidate.type = 'candidate';
-//       sendSignalChannelMessage(candidate, remoteUserObject.id);    // modify sendSignalChannelMessage to take an receiver id as a second argument.
+//       sendSignalChannelMessage(candidate, ball.id, remoteUserObject.id);
 //     }
 //     else {
 //       console.log('All candidates sent');
@@ -320,7 +320,7 @@ setInterval(function() {
 // }
 
 // Announce our arrival to the announcement channel
-function sendAnnounceChannelMessage() {
+function sendAnnounceChannelMessage() {   // this basically says, "hey everybody, I am online now."  Upon hearing that, everybody should call you.
   announceChannel.remove(function() {announceChannel.push({id : ball.id});});
 };
 
@@ -328,17 +328,20 @@ function sendAnnounceChannelMessage() {
 function handleAnnounceChannelMessage(snapshot) {   // push a new remote user object to the remoteUserArray here.
   var message = snapshot.val();
   if (message.id != ball.id && (connectedusers.includes(message.id) == false)) {
-    remote = message.id;
-    initiateWebRTCState();
-    initiator = ball.id;
-    // addNewRemoteUserToRemoteUsersArray(remoteUserID);  //uncomment this
+    remote = message.id; //comment this out
+    initiateWebRTCState(); // comment this out
+    initiator = ball.id; // keep this
+    // var sender = message.sender;  //uncomment this.
+    // addNewRemoteUserToRemoteUsersArray(sender);  //uncomment this
+    // initiateCallToRemoteUser(sender);    //uncomment this. This line should be exectuted strictly after the previous one has finished beign executed. Check that it is (that a new user has been added to the array), and add a fix later.
   }
 };
 
 // Send a message to the remote client via Firebase
-function sendSignalChannelMessage(message) {   //modify this function to also take a receiver id.
-// function sendSignalChannelMessage(message, receiverID) {   //uncomment this
+function sendSignalChannelMessage(message) {   //modify this function to also take a a senderID and a receiver id.
+// function sendSignalChannelMessage(message, senderID, receiverID) {   //uncomment this
   message.sender = ball.id;   // with every webrtc message comes the sender's id. Good. We should also sent the receiver's id.
+  // message.sender = senderID;   //uncomment this
   // message.receiver = receiverID;   //uncomment this
   database.child('messages').child(remote).push(message);
 }
@@ -360,30 +363,64 @@ function handleOfferSignal(message) {    // get the offer sender from the messag
       function(err) {
          console.error('Could not create offer', err);
         })));
+
+  // var sender = message.val().sender;  // uncomment this.
+  // for(let i = 0; i < remoteUserArray.length ; i++){   // uncomment this.
+    // if (remoteUserArray[i].id === sender){
+      //   remoteUserArray[i].pcIsRunning = true;
+        // navigator.mediaDevices.getUserMedia({audio:true, video:true})     // this should not be needed, as we have already captured media when the page was loaded.
+        //   .then(stream => remoteUserArray[i].pc.addStream(stream))   // you might need to do this the await way.
+        //   .then(() => remoteUserArray[i].pcIsRunning.setRemoteDescription(new RTCSessionDescription(message)))
+        //   .then(() => remoteUserArray[i].pcIsRunning.createAnswer(
+        //     function(sessionDescription) {
+        //       remoteUserArray[i].pcIsRunning.setLocalDescription(sessionDescription);
+        //       sendSignalChannelMessage(sessionDescription.toJSON(), ball.id, sender);
+        //     },
+        //     function(err) {
+        //       console.error('Could not create offer', err);
+        //     }
+        //   ));
+    // }
+  // }
 };
 
 // Handle a WebRTC answer response to our offer we gave the remote client
 function handleAnswerSignal(message) { // set the session description only for the remoetUser who sent the answer.
+  var sender = message.sender;
   arrayofpeerconnections[arrayofpeerconnections.length - 1].setRemoteDescription(new RTCSessionDescription(message));
+  // for(let i = 0; i < remoteUserArray.length ; i++){   // uncomment this.
+    // if (remoteUserArray[i].id === sender){
+      // remoteUserArray[i].pc.setRemoteDescription(new RTCSessionDescription(message));
+    // }
+  // }
   connectedusers.push(remote); // later, remove this. It should be redundant if things are done properly.
 };
 
 // Handle an ICE candidate notification from the remote client
 function handleCandidateSignal(message) {    // move this inside the function where it's called so that you have the id of the remote who sent the message. Then, you can add the candidate to the user who sent the candidate and not the last user in the array.
   var candidate = new RTCIceCandidate(message);
+  // var sender = message.val().sender; // uncomment this
   console.log("current Remote description ",  arrayofpeerconnections[arrayofpeerconnections.length - 1].currentRemoteDescription);
   if(arrayofpeerconnections[arrayofpeerconnections.length - 1].currentRemoteDescription){     // this if condition should not be needed.
     arrayofpeerconnections[arrayofpeerconnections.length - 1].addIceCandidate(candidate);
+    // for(let i = 0; i < remoteUserArray.length ; i++){   // uncomment this.
+      // if (remoteUserArray[i].id === sender){
+        // remoteUserArray[i].pc.addIceCandidate(candidate);
+      // }
+    // }
   } else { console.log("no remote description. won't work, bitch"); }
 };
 
-function handleSignalChannelMessage(snapshot) {
+function handleSignalChannelMessage(snapshot) {   // check that the receiver is localUser.  No need to check for the receiver in the functions called below.
   var message = snapshot.val();
-  var sender = message.sender;
+  var sender = message.sender;   // comment this out
+  // var receiver = message.receiver;  // uncomment this.
   var type = message.type;
-  if (type == 'offer'  && (arrayofchannelopen.length==0 || arrayofchannelopen[arrayofchannelopen.length - 1] == 1)) handleOfferSignal(message);
-  else if (type == 'answer') handleAnswerSignal(message);
-  else if (type == 'candidate' && arrayofrunning[arrayofrunning.length - 1]) handleCandidateSignal(message);
+  // if (receiver === ball.id) {  //uncomment this
+  if (type === 'offer'  && (arrayofchannelopen.length==0 || arrayofchannelopen[arrayofchannelopen.length - 1] == 1)) handleOfferSignal(message);
+  else if (type === 'answer') handleAnswerSignal(message);
+  else if (type === 'candidate' && arrayofrunning[arrayofrunning.length - 1]) handleCandidateSignal(message);
+// } //uncomment this
 };
 
 function handleICECandidate(event) {   // send the candidate to a specific user.
@@ -409,6 +446,20 @@ function connect() {
     console.error('Could not create offer', err);
   });
 };
+
+function initiateCallToRemoteUser(remoteUserID) {
+  // for(let i = 0; i < remoteUserArray.length ; i++){   // uncomment this.
+    // if (remoteUserArray[i].id === remoteUserID){
+      // remoteUserArray[i].pcIsRunning = true;
+      // remoteUserArray[i].pc.createOffer(function(sessionDescription) {
+      //   remoteUserArray[i].pc.setLocalDescription(sessionDescription);
+      //   sendSignalChannelMessage(sessionDescription.toJSON(), ball.id, remoteUserID);
+      // }, function(err) {
+      //   console.error('Could not create offer', err);
+      // });
+    // }
+  // }
+}
 
 // Function to initiate the WebRTC peerconnection and dataChannel
 function initiateWebRTCState() {

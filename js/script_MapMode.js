@@ -6,6 +6,11 @@ var config = {
     storageBucket: "testingwebrtc-d087c.appspot.com",
     messagingSenderId: "864357972075"
   };
+var servers = {'iceServers': [
+  {'urls': 'stun:stun.services.mozilla.com'},
+  {'urls': 'stun:stun.l.google.com:19302'},
+  {'urls': 'turn:numb.viagenie.ca','credential': '13111994','username': 'bassemsafieldeen@gmail.com'}
+]};
 var fb = firebase.initializeApp(config);
 var database = firebase.database().ref();
 var localVideo = document.getElementById("localVideo");   // make video a property of the ball.
@@ -21,9 +26,8 @@ var arrayofchannelopen = [];
 var connectedusers = [];
 var broadcasting = 0;  //if this is 1, the user's video is turned on on the other users' screens. When it becomes 0 again, the video turns off. This variable is sent to the other users in animate().
 var localStream;
-var arrayofballs = [];   // each object in this array has this form {id:id, ball:ball, Lcircle: Lcircle, pc:pc, videoElement: videoElement, pc: pc}. This array should not include the local ball.
-// change the name to arrayOfRemoteUsers.
-var localLcircle;    // this is the localLcircle
+var arrayofballs = [];
+var localLcircle;
 var id = Math.random().toString().replace('.', '');    // later this will be a token passed from the login backend.
 var ball = {
   pos: {lat: 0,lng: 0},
@@ -43,8 +47,13 @@ theRadio.src = "";
 // Generate this browser a unique ID
 // On Firebase peers use this unique ID to address messages to each other
 // after they have found each other in the announcement channel
-
+var remoteUsersArray = [];    // each object in this array has this form {id:id, ball:ball, Lcircle: Lcircle, pc:pc, pcIsRunning: pcIsRunning}. This array should not include the local ball.
+// A new reoteUser object is pushed to this array as soon as a new remote user is detected.
 var remote;          // ID of the remote peer -- set once they send an offer
+var announceChannel = database.child('announce');
+announceChannel.limitToLast(30).on('child_added', handleAnnounceChannelMessage);
+var signalChannel = database.child('messages').child(id);
+signalChannel.limitToLast(30).on('child_added', handleSignalChannelMessage);
 //--------------------------------------------------------
 
 // var socket = io.connect("http://localhost:8080");
@@ -52,7 +61,6 @@ var remote;          // ID of the remote peer -- set once they send an offer
 
 
 function setUpKeyboardListeners(){
-
   document.addEventListener('keydown', event => {
     if (event.keyCode === 37) { //Left
       ball.direction.x += -1;
@@ -110,10 +118,7 @@ setUpKeyboardListeners();
   }
 });*/
 
-
-
-
-var handleBallPosChannelMessage = function (message) {     // later, stop using firebase and broadcast the ball locations using socket.io.
+var handleBallPosChannelMessage = function (message) {     // later, stop using firebase and broadcast the ball locations using socket.io. Why?
    var theSender = message.val().id;
    if(theSender != id && connectedusers != undefined  && connectedusers.length > 0 && arrayofballs.length == connectedusers.length) {
    var PosInArray = connectedusers.indexOf(theSender);
@@ -128,8 +133,6 @@ var handleBallPosChannelMessage = function (message) {     // later, stop using 
 var ballPosChannel = database.child('positions');     // replace this with socket.io.
 ballPosChannel.limitToLast(30).on('child_added', handleBallPosChannelMessage);
 
-
-
 //The Map (see possible map style from mapbox here: https://gis.stackexchange.com/questions/244788/map-ids-to-add-mapbox-basemaps-to-leaflet-or-openlayers)
 var map = L.map('map');
 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
@@ -139,8 +142,6 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=p
 	'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
 	id: 'mapbox.streets'
 }).addTo(map);
-
-
 
 function onLocationFound(e) {
   ball.pos.lat = e.latlng.lat;     // comment these out.
@@ -153,7 +154,6 @@ function onLocationFound(e) {
 
 map.on('locationfound', onLocationFound);
 map.locate({setView: true, maxZoom: 16});
-
 
 //Function to get country name given a latLng object
 //There are many options for reverse geocoding service providers. see here (https://github.com/perliedman/leaflet-control-geocoder)
@@ -178,14 +178,6 @@ function updateTerminator(t) {
   t.setLatLngs(t2.getLatLngs());
   t.redraw();
 }*/
-
-
-
-
-
-
-
-
 
 function updateVolumes(){
   //update volumes of calling balls
@@ -273,7 +265,6 @@ function updateRadioStation(){
   }
 }
 
-
 var FPS = 30;
 setInterval(function() {
   animate();
@@ -286,153 +277,176 @@ setInterval(function() {
 
 //-----------------------------------------------------
 
+// function setUpWebRTCHandlers(remoteUserObject){   // uncomment this.
+//   remoteUserObject.pc.onicecandidate = function(event){   // this function is instead of handleICECandidate.
+//     var candidate = event.candidate;
+//     if (candidate) {
+//       candidate = candidate.toJSON();
+//       candidate.type = 'candidate';
+//       sendSignalChannelMessage(candidate, remoteUserObject.id);    // modify sendSignalChannelMessage to take an receiver id as a second argument.
+//     }
+//     else {
+//       console.log('All candidates sent');
+//     }
+//   }
+//
+//   remoteUserObject.pc.onaddstream = function(event){
+//     var tmpvid = L.DomUtil.create('video');
+//     tmpvid.autoplay = true;
+//     tmpvid.height = 100; tmpvid.width = 100;
+//     tmpvid.srcObject = event.stream;
+//     remoteUserObject.Lcircle.bindPopup(tmpvid, {maxWidth: "auto", closeButton: false});
+//   }
+// }
 
+// function addNewRemoteUserToRemoteUsersArray(remoteUserID){  // uncomment this.
+//   var newBall = {
+//     pos: {lat: 0, lng: 0},   // the location of the remoteUser's ball will be updated elsewhere.
+//     direction: {x: 0, y: 0},
+//     speed: 0.005,
+//     brake: 0.9, // smaller number stop faster, max 0.99999
+//     broadcasting: 0
+//   }
+//   var newLcircle = L.circle([0, 0], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
+//   var newRemoteUser = {
+//     id: remoteUserID,
+//     ball: newBall,
+//     Lcircle: newLcircle,  //Lcircle contains the video element. It is bound to it when the stream is added.
+//     pc: new RTCPeerConnection(servers),
+//     pcIsRunning: false
+//   }
+//   setUpWebRTCHandlers(newRemoteUser);
+//   remoteUsersArray.push(newRemoteUser);
+// }
 
-var servers = {'iceServers': [{'urls': 'stun:stun.services.mozilla.com'}, {'urls': 'stun:stun.l.google.com:19302'}, {'urls': 'turn:numb.viagenie.ca','credential': '13111994','username': 'bassemsafieldeen@gmail.com'}]};
+// Announce our arrival to the announcement channel
+function sendAnnounceChannelMessage() {
+  announceChannel.remove(function() {announceChannel.push({id : ball.id});});
+};
 
-
-function startnow() {
-  navigator.mediaDevices.getUserMedia({audio:true, video:true})
-    .then(stream => localStream = stream);
-
-
-  // Announce our arrival to the announcement channel
-  var sendAnnounceChannelMessage = function() {
-    announceChannel.remove(function() {announceChannel.push({id : ball.id});});
-  };
-
-  // Handle an incoming message on the announcement channel
-  var handleAnnounceChannelMessage = function(snapshot) {
-    var message = snapshot.val();
-    if (message.id != ball.id && (connectedusers.includes(message.id) == false)) {
-      remote = message.id;
-      initiateWebRTCState();
-      initiator = ball.id;
-    }
-  };
-
-  // Send a message to the remote client via Firebase
-  var sendSignalChannelMessage = function(message) {
-    message.sender = ball.id;
-    database.child('messages').child(remote).push(message);
-  };
-
-  // Handle a WebRTC offer request from a remote client
-  var handleOfferSignal = function(message) {
-    remote = message.sender;
+// Handle an incoming message on the announcement channel
+function handleAnnounceChannelMessage(snapshot) {   // push a new remote user object to the remoteUserArray here.
+  var message = snapshot.val();
+  if (message.id != ball.id && (connectedusers.includes(message.id) == false)) {
+    remote = message.id;
     initiateWebRTCState();
-    arrayofrunning[arrayofrunning.length - 1] = true;
-    navigator.mediaDevices.getUserMedia({audio:true, video:true})
-      .then(stream => arrayofpeerconnections[arrayofpeerconnections.length - 1].addStream(stream))
-      .then(() => (arrayofpeerconnections[arrayofpeerconnections.length - 1].onicecandidate = handleICECandidate))
-      .then(() => (arrayofpeerconnections[arrayofpeerconnections.length - 1].setRemoteDescription(new RTCSessionDescription(message))))
-      .then(() => (arrayofpeerconnections[arrayofpeerconnections.length - 1].createAnswer(function(sessionDescription) {
+    initiator = ball.id;
+    // addNewRemoteUserToRemoteUsersArray(remoteUserID);  //uncomment this
+  }
+};
+
+// Send a message to the remote client via Firebase
+function sendSignalChannelMessage(message) {   //modify this function to also take a receiver id.
+// function sendSignalChannelMessage(message, receiverID) {   //uncomment this
+  message.sender = ball.id;   // with every webrtc message comes the sender's id. Good. We should also sent the receiver's id.
+  // message.receiver = receiverID;   //uncomment this
+  database.child('messages').child(remote).push(message);
+}
+
+// Handle a WebRTC offer request from a remote client
+function handleOfferSignal(message) {    // get the offer sender from the message.
+  remote = message.sender;    // make remote a local variable. But it is not user locally.
+  initiateWebRTCState();
+  arrayofrunning[arrayofrunning.length - 1] = true;
+  navigator.mediaDevices.getUserMedia({audio:true, video:true})
+    .then(stream => arrayofpeerconnections[arrayofpeerconnections.length - 1].addStream(stream))   // add a stream only to the pc corresponding to the user who sent the message.
+    .then(() => (arrayofpeerconnections[arrayofpeerconnections.length - 1].onicecandidate = handleICECandidate))   // comment this out, as it's already set when the remoteUser is created.
+    .then(() => (arrayofpeerconnections[arrayofpeerconnections.length - 1].setRemoteDescription(new RTCSessionDescription(message))))
+    .then(() => (arrayofpeerconnections[arrayofpeerconnections.length - 1].createAnswer(
+      function(sessionDescription) {
         arrayofpeerconnections[arrayofpeerconnections.length - 1].setLocalDescription(sessionDescription);
         sendSignalChannelMessage(sessionDescription.toJSON());
-      }, function(err) {
-           console.error('Could not create offer', err);
-          })));
+      },
+      function(err) {
+         console.error('Could not create offer', err);
+        })));
+};
 
-  };
+// Handle a WebRTC answer response to our offer we gave the remote client
+function handleAnswerSignal(message) { // set the session description only for the remoetUser who sent the answer.
+  arrayofpeerconnections[arrayofpeerconnections.length - 1].setRemoteDescription(new RTCSessionDescription(message));
+  connectedusers.push(remote); // later, remove this. It should be redundant if things are done properly.
+};
 
-  // Handle a WebRTC answer response to our offer we gave the remote client
-  var handleAnswerSignal = function(message) {
-    arrayofpeerconnections[arrayofpeerconnections.length - 1].setRemoteDescription(new RTCSessionDescription(message));
-    connectedusers.push(remote);
-  };
+// Handle an ICE candidate notification from the remote client
+function handleCandidateSignal(message) {    // move this inside the function where it's called so that you have the id of the remote who sent the message. Then, you can add the candidate to the user who sent the candidate and not the last user in the array.
+  var candidate = new RTCIceCandidate(message);
+  console.log("current Remote description ",  arrayofpeerconnections[arrayofpeerconnections.length - 1].currentRemoteDescription);
+  if(arrayofpeerconnections[arrayofpeerconnections.length - 1].currentRemoteDescription){     // this if condition should not be needed.
+    arrayofpeerconnections[arrayofpeerconnections.length - 1].addIceCandidate(candidate);
+  } else { console.log("no remote description. won't work, bitch"); }
+};
 
-  // Handle an ICE candidate notification from the remote client
-  var handleCandidateSignal = function(message) {
-    var candidate = new RTCIceCandidate(message);
-    console.log("current Remote description ",  arrayofpeerconnections[arrayofpeerconnections.length - 1].currentRemoteDescription);
-    if(arrayofpeerconnections[arrayofpeerconnections.length - 1].currentRemoteDescription){
-      arrayofpeerconnections[arrayofpeerconnections.length - 1].addIceCandidate(candidate);
-    } else { console.log("no remote description. won't work, bitch"); }
-  };
+function handleSignalChannelMessage(snapshot) {
+  var message = snapshot.val();
+  var sender = message.sender;
+  var type = message.type;
+  if (type == 'offer'  && (arrayofchannelopen.length==0 || arrayofchannelopen[arrayofchannelopen.length - 1] == 1)) handleOfferSignal(message);
+  else if (type == 'answer') handleAnswerSignal(message);
+  else if (type == 'candidate' && arrayofrunning[arrayofrunning.length - 1]) handleCandidateSignal(message);
+};
 
+function handleICECandidate(event) {   // send the candidate to a specific user.
+  var candidate = event.candidate;
+  if (candidate) {
+    candidate = candidate.toJSON();
+    candidate.type = 'candidate';
+    sendSignalChannelMessage(candidate);
+  }
+  else {
+    console.log('All candidates sent');
+  }
+};
 
-  var handleSignalChannelMessage = function(snapshot) {
-    var message = snapshot.val();
-    var sender = message.sender;
-    var type = message.type;
-    if (type == 'offer'  && (arrayofchannelopen.length==0 || arrayofchannelopen[arrayofchannelopen.length - 1] == 1)) handleOfferSignal(message);
-    else if (type == 'answer') handleAnswerSignal(message);
-    else if (type == 'candidate' && arrayofrunning[arrayofrunning.length - 1]) handleCandidateSignal(message);
-  };
+// Function to offer to start a WebRTC connection with a peer
+function connect() {
+  arrayofrunning[arrayofrunning.length - 1] = true;
+  arrayofpeerconnections[arrayofpeerconnections.length - 1].onicecandidate = handleICECandidate;
+  arrayofpeerconnections[arrayofpeerconnections.length - 1].createOffer(function(sessionDescription) {
+    arrayofpeerconnections[arrayofpeerconnections.length - 1].setLocalDescription(sessionDescription);
+    sendSignalChannelMessage(sessionDescription.toJSON());
+  }, function(err) {
+    console.error('Could not create offer', err);
+  });
+};
 
-
-  var handleICECandidate = function(event) {
-    var candidate = event.candidate;
-    if (candidate) {
-      candidate = candidate.toJSON();
-      candidate.type = 'candidate';
-      sendSignalChannelMessage(candidate);
-    }
-    else {
-      console.log('All candidates sent');
-    }
-  };
-
-
-  // Function to offer to start a WebRTC connection with a peer
-  var connect = function() {
-    arrayofrunning[arrayofrunning.length - 1] = true;
-    arrayofpeerconnections[arrayofpeerconnections.length - 1].onicecandidate = handleICECandidate;
-    arrayofpeerconnections[arrayofpeerconnections.length - 1].createOffer(function(sessionDescription) {
-      arrayofpeerconnections[arrayofpeerconnections.length - 1].setLocalDescription(sessionDescription);
-      sendSignalChannelMessage(sessionDescription.toJSON());
-    }, function(err) {
-      console.error('Could not create offer', err);
+// Function to initiate the WebRTC peerconnection and dataChannel
+function initiateWebRTCState() {
+  arrayofpeerconnections.push(new RTCPeerConnection(servers));    // do this when the remote's arrival is announced, not here.
+  arrayofrunning.push(false);   // same
+  arrayofchannelopen.push(0);  // same
+  arrayofpeerconnections[arrayofpeerconnections.length - 1].onaddstream = function (event) {  // same
+    if (initiator!=ball.id){connectedusers.push(remote);}
+    arrayofballs.push({
+      pos: {lat: 0,lng: 0},
+      direction: { x: 0, y: 0 },
+      speed: 0.005,
+      brake: 0.9, // smaller number stop faster, max 0.99999
+      broadcasting: 0,
+      id: remote,      // remove id from ball. It's already in the remoteUser object.
     });
+    arrayofLcircles.push(L.circle([0, 0], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map));
+    arrayofstreams.push(event.stream);
+    var tmpvid = L.DomUtil.create('video');
+    tmpvid.autoplay = true;
+    tmpvid.height = 100; tmpvid.width = 100;
+    tmpvid.srcObject = event.stream;
+    arrayofLcircles[arrayofLcircles.length-1].bindPopup(tmpvid, {maxWidth: "auto", closeButton: false});
+    arrayofchannelopen[arrayofchannelopen.length - 1] = 1;
+    if (arrayofchannelopen.length > 1 && arrayofchannelopen[arrayofchannelopen.length - 2] == 0) {
+      arrayofchannelopen.splice(arrayofchannelopen.length - 2, 1);
+      arrayofpeerconnections.splice(arrayofpeerconnections.length - 2, 1);
+      arrayofrunning.splice(arrayofrunning.length - 2, 1);
+    }
+    sendAnnounceChannelMessage();
   };
+  navigator.mediaDevices.getUserMedia({audio:true, video:true})
+    .then(stream => (initiator==ball.id?arrayofpeerconnections[arrayofpeerconnections.length - 1].addStream(stream):console.log("not initiator"))    )
+    .then(() => (initiator==ball.id?connect():console.log("not initiator")));
+};
 
-
-  // Function to initiate the WebRTC peerconnection and dataChannel
-  var initiateWebRTCState = function() {
-    arrayofpeerconnections.push(new RTCPeerConnection(servers));
-    arrayofrunning.push(false);
-    arrayofchannelopen.push(0);
-    arrayofpeerconnections[arrayofpeerconnections.length - 1].onaddstream = function (event) {
-      if (initiator!=ball.id){connectedusers.push(remote);}
-      arrayofballs.push({
-        pos: {lat: 0,lng: 0},
-        direction: { x: 0, y: 0 },
-        speed: 0.005,
-        brake: 0.9, // smaller number stop faster, max 0.99999
-        broadcasting: 0,
-        id: remote,
-      });
-      arrayofLcircles.push(L.circle([0, 0], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map));
-      arrayofstreams.push(event.stream);
-      var tmpvid = L.DomUtil.create('video');
-      tmpvid.autoplay = true;
-      tmpvid.height = 100; tmpvid.width = 100;
-      tmpvid.srcObject = event.stream;
-      arrayofLcircles[arrayofLcircles.length-1].bindPopup(tmpvid, {maxWidth: "auto", closeButton: false});
-      arrayofchannelopen[arrayofchannelopen.length - 1] = 1;
-
-      if (arrayofchannelopen.length > 1 && arrayofchannelopen[arrayofchannelopen.length - 2] == 0) {
-        arrayofchannelopen.splice(arrayofchannelopen.length - 2, 1);
-        arrayofpeerconnections.splice(arrayofpeerconnections.length - 2, 1);
-        arrayofrunning.splice(arrayofrunning.length - 2, 1);
-      }
-
-      sendAnnounceChannelMessage();
-
-    };
-
-    navigator.mediaDevices.getUserMedia({audio:true, video:true})
-      .then(stream => (initiator==ball.id?arrayofpeerconnections[arrayofpeerconnections.length - 1].addStream(stream):console.log("not initiator"))    )
-      .then(() => (initiator==ball.id?connect():console.log("not initiator")));
-
-  };
-
-
-
-  var announceChannel = database.child('announce');
-  announceChannel.limitToLast(30).on('child_added', handleAnnounceChannelMessage);
-  var signalChannel = database.child('messages').child(id);
-  signalChannel.limitToLast(30).on('child_added', handleSignalChannelMessage);
+window.onload = function(){
+  navigator.mediaDevices.getUserMedia({audio:true, video:true})
+    .then(stream => localStream = stream);   // later, get user media only when the spacebar is pressed.
   sendAnnounceChannelMessage();
-
 }

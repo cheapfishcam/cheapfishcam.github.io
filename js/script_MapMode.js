@@ -47,7 +47,7 @@ theRadio.src = "";
 // Generate this browser a unique ID
 // On Firebase peers use this unique ID to address messages to each other
 // after they have found each other in the announcement channel
-var remoteUsersArray = [];    // each object in this array has this form {id:id, ball:ball, Lcircle: Lcircle, pc:pc, pcIsRunning: pcIsRunning}. This array should not include the local ball.
+var remoteUsersArray = [];    // each object in this array has this form {id:id, ball:ball, Lcircle: Lcircle, pc:pc, pcIsRunning: pcIsRunning, isBroadcasting: isBroadcasting, stream: stream}. This array should not include the local ball.
 // A new reoteUser object is pushed to this array as soon as a new remote user is detected.
 var remote;          // ID of the remote peer -- set once they send an offer
 var announceChannel = database.child('announce');
@@ -119,15 +119,22 @@ setUpKeyboardListeners();
 });*/
 
 var handleBallPosChannelMessage = function (message) {     // later, stop using firebase and broadcast the ball locations using socket.io. Why?
-   var theSender = message.val().id;
-   if(theSender != id && connectedusers != undefined  && connectedusers.length > 0 && arrayofballs.length == connectedusers.length) {
-   var PosInArray = connectedusers.indexOf(theSender);
-   if (PosInArray != -1){
-   arrayofballs[PosInArray].pos.lat = message.val().xpos;
-   arrayofballs[PosInArray].pos.lng = message.val().ypos;
-   arrayofballs[PosInArray].broadcasting = message.val().broadcasting;
- }
-}
+  var sender = message.val().id;
+  if(sender != id && connectedusers != undefined  && connectedusers.length > 0 && arrayofballs.length == connectedusers.length) {
+    var PosInArray = connectedusers.indexOf(sender);
+    if (PosInArray != -1){
+      arrayofballs[PosInArray].pos.lat = message.val().xpos;
+      arrayofballs[PosInArray].pos.lng = message.val().ypos;
+      arrayofballs[PosInArray].broadcasting = message.val().broadcasting;
+    }
+  }
+  // for(let i = 0; i < remoteUserArray.length ; i++){   // uncomment this.
+    // if (remoteUserArray[i].id === sender){
+      // remoteUserArray[i].ball.pos.lat = message.val().xpos;
+      // remoteUserArray[i].ball.pos.lng = message.val().ypos;
+      // remoteUserArray[i].ball.broadcasting = message.val().broadcasting;
+    // }
+  // }
 };
 
 var ballPosChannel = database.child('positions');     // replace this with socket.io.
@@ -144,7 +151,7 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=p
 }).addTo(map);
 
 function onLocationFound(e) {
-  ball.pos.lat = e.latlng.lat;     // comment these out.
+  ball.pos.lat = e.latlng.lat;     // comment these out. Not now
   ball.pos.lng = e.latlng.lng;
   localLcircle = L.circle([ball.pos.lat, ball.pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
   //localUser.ball.pos.lat = e.latlng.lat;    // uncomment these.
@@ -182,11 +189,13 @@ function updateTerminator(t) {
 function updateVolumes(){
   //update volumes of calling balls
   if (arrayofLcircles.length > 0 && arrayofLcircles.length == arrayofballs.length){
-    var i;
-    for (i=0;i<arrayofLcircles.length;i++) {
+    for (let i=0;i<arrayofLcircles.length;i++) {
       arrayofLcircles[i].getPopup().getContent().volume=1/Math.max(1, 10 * Math.sqrt(Math.pow((ball.pos.lat - arrayofballs[i].pos.lat),2) + Math.pow((ball.pos.lng - arrayofballs[i].pos.lng),2)));
     }
   }
+  // for (let i=0;i<arrayofLcircles.length;i++) {   //uncomment this. May be check if the user is broadcasting.
+  //   remoteUserArray[i].Lcircle.getPopup().getContent().volume=1/Math.max(1, 10 * Math.sqrt(Math.pow((ball.pos.lat - remoteUserArray[i].ball.pos.lat),2) + Math.pow((ball.pos.lng - remoteUserArray[i].ball.pos.lng),2)));
+  // }
 }
 
 function animate() {
@@ -211,7 +220,7 @@ function gameBack() {
   //map.setView(new L.LatLng(localUser.ball.pos.lat, localUser.ball.pos.lng), 8);
   $("#videoDiv").css({"position": "absolute", "top": canvasHeight/1.5 , "left": localVideo.width/2, "width":localVideo.width, "height":localVideo.height});
   //update locations of other balls
-  for (let i = 0 ; i < arrayofballs.length ; i++){
+  for (let i = 0 ; i < arrayofballs.length ; i++){    // comment this out.
     arrayofLcircles[i].setLatLng([arrayofballs[i].pos.lat, arrayofballs[i].pos.lng]);
     //turn on video for broadcasting balls
     if (arrayofballs[i].broadcasting == 1) {
@@ -227,6 +236,23 @@ function gameBack() {
       arrayofLcircles[i].getPopup().getContent().src = "";
     }
   }
+
+  // for (let i = 0 ; i < remoteUserArray.length ; i++){   // uncomment this
+  //   remoteUserArray[i].Lcircle.setLatLng([remoteUserArray[i].ball.pos.lat, remoteUserArray[i].ball.pos.lng]);
+  //   //turn on video for broadcasting balls
+  //   if (remoteUserArray[i].isBroadcasting == true) {
+  //     remoteUserArray[i].Lcircle.getPopup().getContent().width = 100/Math.max(1, 10 * Math.sqrt(Math.pow((ball.pos.lat - remoteUserArray[i].ball.pos.lat),2) + Math.pow((ball.pos.lng - remoteUserArray[i].ball.pos.lng),2)));
+  //     remoteUserArray[i].Lcircle.getPopup().getContent().height = 100/Math.max(1, 10 * Math.sqrt(Math.pow((ball.pos.lat - remoteUserArray[i].ball.pos.lat),2) + Math.pow((ball.pos.lng - remoteUserArray[i].ball.pos.lng),2)));
+  //     if(remoteUserArray[i].Lcircle.getPopup().isOpen() == false){
+  //       remoteUserArray[i].Lcircle.getPopup().getContent().srcObject = remoteUserArray[i].stream;
+  //       remoteUserArray[i].Lcircle.openPopup();
+  //     }
+  //   }
+  //   else if(remoteUserArray[i].isBroadcasting == false && remoteUserArray[i].Lcircle.getPopup().isOpen()) {
+  //     remoteUserArray[i].Lcircle.closePopup();
+  //     remoteUserArray[i].Lcircle.getPopup().getContent().src = "";
+  //   }
+  // }
 }
 
 function removeDeadBalls() {
@@ -245,6 +271,13 @@ function removeDeadBalls() {
       }
     }
   }
+  // for (let i = 0; i < remoteUserArray.length; i++) {   // uncomment this.
+  //   if (remoteUserArray[i].pc.iceConnectionState === 'disconnected'){
+  //     map.removeLayer(remoteUserArray[i].Lcircle);
+  //     remoteUserArray.splice(i,1);
+  //     i--;
+  //   }
+  // }
 }
 
 function updateRadioStation(){
@@ -295,6 +328,7 @@ setInterval(function() {
 //     tmpvid.autoplay = true;
 //     tmpvid.height = 100; tmpvid.width = 100;
 //     tmpvid.srcObject = event.stream;
+//     remoteUserObject.stream = event.stream;
 //     remoteUserObject.Lcircle.bindPopup(tmpvid, {maxWidth: "auto", closeButton: false});
 //   }
 // }
@@ -304,8 +338,7 @@ setInterval(function() {
 //     pos: {lat: 0, lng: 0},   // the location of the remoteUser's ball will be updated elsewhere.
 //     direction: {x: 0, y: 0},
 //     speed: 0.005,
-//     brake: 0.9, // smaller number stop faster, max 0.99999
-//     broadcasting: 0
+//     brake: 0.9 // smaller number stop faster, max 0.99999
 //   }
 //   var newLcircle = L.circle([0, 0], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
 //   var newRemoteUser = {
@@ -313,7 +346,9 @@ setInterval(function() {
 //     ball: newBall,
 //     Lcircle: newLcircle,  //Lcircle contains the video element. It is bound to it when the stream is added.
 //     pc: new RTCPeerConnection(servers),
-//     pcIsRunning: false
+//     pcIsRunning: false,
+//     isBroadcasting: false,
+//     stream: null
 //   }
 //   setUpWebRTCHandlers(newRemoteUser);
 //   remoteUsersArray.push(newRemoteUser);
@@ -436,7 +471,7 @@ function handleICECandidate(event) {   // send the candidate to a specific user.
 };
 
 // Function to offer to start a WebRTC connection with a peer
-function connect() {
+function connect() {    // later, this will not be needed, so comment it out.
   arrayofrunning[arrayofrunning.length - 1] = true;
   arrayofpeerconnections[arrayofpeerconnections.length - 1].onicecandidate = handleICECandidate;
   arrayofpeerconnections[arrayofpeerconnections.length - 1].createOffer(function(sessionDescription) {
@@ -447,7 +482,7 @@ function connect() {
   });
 };
 
-function initiateCallToRemoteUser(remoteUserID) {
+function initiateCallToRemoteUser(remoteUserID) {    // this is instead of connect().
   // for(let i = 0; i < remoteUserArray.length ; i++){   // uncomment this.
     // if (remoteUserArray[i].id === remoteUserID){
       // remoteUserArray[i].pcIsRunning = true;

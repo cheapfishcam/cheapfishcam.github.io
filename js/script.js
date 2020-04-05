@@ -167,7 +167,7 @@ var FPS = 30;
       arrayofvideos[i].srcObject = arrayofstreams[i];
       arrayofvideos[i].width =  canvas.width/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
       arrayofvideos[i].height = canvas.width/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
-    } 
+    }
     else if(arrayofballs[i].broadcasting == 0) {
       arrayofvideos[i].src = "";
       arrayofvideos[i].width = 0;
@@ -175,7 +175,7 @@ var FPS = 30;
      }
     else {
       arrayofvideos[i].width =  canvas.width/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
-      arrayofvideos[i].height = canvas.width/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));   
+      arrayofvideos[i].height = canvas.width/10/Math.max(1, 0.05 * Math.sqrt(Math.pow((ball.pos.x - arrayofballs[i].pos.x),2) + Math.pow((ball.pos.y - arrayofballs[i].pos.y),2)));
 }
   }
   }
@@ -224,7 +224,7 @@ var FPS = 30;
              if (arrayofpeerconnections[i].iceConnectionState === 'disconnected'){
                 if(arrayofpeerconnections.length == arrayofballs.length && arrayofballs.length == arrayofrunning.length && arrayofrunning.length == arrayofchannelopen.length && arrayofchannelopen.length == arrayofvideos.length && arrayofvideos.length == arrayofvideodivs.length && arrayofvideodivs.length == arrayofstreams.length && arrayofstreams.length == connectedusers.length){
                   console.log(arrayofpeerconnections[i].iceConnectionState);
-                  arrayofpeerconnections.splice(i,1); 
+                  arrayofpeerconnections.splice(i,1);
                   arrayofballs.splice(i,1);
                   arrayofrunning.splice(i,1);
                   arrayofchannelopen.splice(i,1);
@@ -236,7 +236,7 @@ var FPS = 30;
                   document.body.removeChild(deadvideodiv);
                   i--;
                 }
-              } 
+              }
           }
     }, 1000/FPS);
   //-------------------------------------------------------
@@ -392,7 +392,7 @@ var initiateWebRTCState = function() {
     newDivWrapper.appendChild(video);
     arrayofvideodivs.push(newDivWrapper);       //----
     document.body.appendChild(newDivWrapper);   //change this back to video
-    arrayofvideos.push(video);     
+    arrayofvideos.push(video);
     arrayofstreams.push(event.stream);
     //video.srcObject = event.stream;
     if (initiator!=id) connectedusers.push(remote);

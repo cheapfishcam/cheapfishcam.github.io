@@ -8,62 +8,104 @@ var config = {
   };
 var fb = firebase.initializeApp(config);
 var database = firebase.database().ref();
-var yourVideo = document.getElementById("yourVideo");
+var localVideo = document.getElementById("localVideo");   // make video a property of the ball.
 var sender;
 var target;
 var initiator;
 var handleDataChannelOpen;
-var arrayofpeerconnections = [];
-canvasWidth = $(window).width() - $(window).width()/15
-canvasHeight = $(window).height() - $(window).height()/15
-var arrayofrunning = [];
+var arrayofpeerconnections = [];    // make peer connections a property of the remote balls.
+canvasWidth = $(window).width() - $(window).width()/15;
+canvasHeight = $(window).height() - $(window).height()/15;
+var arrayofrunning = [];    // don't store things in different arrays; just have one array of balls with different properties.
 var arrayofchannelopen = [];
 var connectedusers = [];
 var broadcasting = 0;  //if this is 1, the user's video is turned on on the other users' screens. When it becomes 0 again, the video turns off. This variable is sent to the other users in animate().
-var myStream;
-var arrayofballs = [];
+var localStream;
+var arrayofballs = [];   // each object in this array has this form {id:id, ball:ball, Lcircle: Lcircle, pc:pc, videoElement: videoElement, pc: pc}. This array should not include the local ball.
+// change the name to arrayOfRemoteUsers.
+var localLcircle;    // this is the localLcircle
+var id = Math.random().toString().replace('.', '');    // later this will be a token passed from the login backend.
+var ball = {
+  pos: {lat: 0,lng: 0},
+  direction: { x: 0, y: 0 },
+  speed: 0.005,
+  brake: 0.9, // smaller number stop faster, max 0.99999
+  broadcasting: 0,      // move broadcasting to the localUser object.
+  id: id,               // move id to the localUser object.
+};
+// var localUser;    This will have the same form as the objects in the arrayofballs. Add localLcircle and ball above to this object.
 var arrayofLcircles = [];
 var arrayofstreams = [];
 var radioSource = "";
 var theRadio = document.getElementById("radioIframe");
 theRadio.src = "";
 //var country;  //country of ball
-
 // Generate this browser a unique ID
 // On Firebase peers use this unique ID to address messages to each other
 // after they have found each other in the announcement channel
-var id = Math.random().toString().replace('.', '');
+
 var remote;          // ID of the remote peer -- set once they send an offer
 //--------------------------------------------------------
 
-//Opens video on pressing spacebar
-document.addEventListener('keydown',function(e){
-  if (e.keyCode==32) {
-    broadcasting = 1;
-    yourVideo.width = canvasWidth/10;
-    yourVideo.height = yourVideo.width;
-    if (myStream != undefined && yourVideo.srcObject == null){yourVideo.srcObject = myStream;}
-  }
-});
+// var socket = io.connect("http://localhost:8080");
+// remember to add the transports thing with websockets for server deployment.
 
-document.addEventListener('keyup', function(e){
-  if (e.keyCode==32) {
-    broadcasting = 0;
-    yourVideo.width = 0;
-    yourVideo.height = 0;
-    yourVideo.src="";
-  }
-});
+
+function setUpKeyboardListeners(){
+
+  document.addEventListener('keydown', event => {
+    if (event.keyCode === 37) { //Left
+      ball.direction.x += -1;
+      // localUser.ball.direction.x += -1;   // uncomment these
+    }
+    else if (event.keyCode === 39) { //Right
+      ball.direction.x += 1;
+      // localUser.ball.direction.x += 1;
+    }
+    else if (event.keyCode === 38) { //Up
+      ball.direction.y += 1;
+      // localUser.ball.direction.y += 1;
+    }
+    else if (event.keyCode === 40) { //Down
+      ball.direction.y += -1;
+      // localUser.ball.direction.y += -1;
+    }
+  });
+
+  //Opens video on pressing spacebar
+  document.addEventListener('keydown',function(e){
+    if (e.keyCode==32) {
+      broadcasting = 1;
+      localVideo.width = canvasWidth/10;
+      localVideo.height = localVideo.width;
+      if (localStream != undefined && localVideo.srcObject == null){
+        localVideo.srcObject = localStream;
+      }
+    }
+  });
+
+  document.addEventListener('keyup', function(e){
+    if (e.keyCode==32) {
+      broadcasting = 0;
+      localVideo.width = 0;
+      localVideo.height = 0;
+      localVideo.src="";
+    }
+  });
+
+}
+
+setUpKeyboardListeners();
 
 //Toggle Radio
 /*document.getElementById("radioButton").addEventListener("click", function(){
   var theButton = document.getElementById("radioButton");
   if(theButton.value === "off"){
-    theButton.value = "on"; 
+    theButton.value = "on";
     theRadio.src = radioSource;
   }
   else{
-    theButton.value = "off"; 
+    theButton.value = "off";
     theRadio.src = "";
   }
 });*/
@@ -71,7 +113,7 @@ document.addEventListener('keyup', function(e){
 
 
 
-var handleBallPosChannelMessage = function (message) {
+var handleBallPosChannelMessage = function (message) {     // later, stop using firebase and broadcast the ball locations using socket.io.
    var theSender = message.val().id;
    if(theSender != id && connectedusers != undefined  && connectedusers.length > 0 && arrayofballs.length == connectedusers.length) {
    var PosInArray = connectedusers.indexOf(theSender);
@@ -83,16 +125,9 @@ var handleBallPosChannelMessage = function (message) {
 }
 };
 
-var ballPosChannel = database.child('positions');
+var ballPosChannel = database.child('positions');     // replace this with socket.io.
 ballPosChannel.limitToLast(30).on('child_added', handleBallPosChannelMessage);
-var ball = {
-  pos: {lat: 0,lng: 0},
-  direction: { x: 0, y: 0 },
-  speed: 0.005,
-  brake: 0.9, // smaller number stop faster, max 0.99999
-  broadcasting: 0,
-  id: id,
-};
+
 
 
 //The Map (see possible map style from mapbox here: https://gis.stackexchange.com/questions/244788/map-ids-to-add-mapbox-basemaps-to-leaflet-or-openlayers)
@@ -105,12 +140,15 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=p
 	id: 'mapbox.streets'
 }).addTo(map);
 
-    
-var myBall;
+
+
 function onLocationFound(e) {
-  ball.pos.lat = e.latlng.lat;
+  ball.pos.lat = e.latlng.lat;     // comment these out.
   ball.pos.lng = e.latlng.lng;
-  myBall = L.circle([ball.pos.lat, ball.pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
+  localLcircle = L.circle([ball.pos.lat, ball.pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
+  //localUser.ball.pos.lat = e.latlng.lat;    // uncomment these.
+  //localUser.ball.pos.lng = e.latlng.lng;
+  //localUser.Lcircle = L.circle([localUser.ball.pos.lat, localUser.ball.pos.lng], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
 }
 
 map.on('locationfound', onLocationFound);
@@ -144,20 +182,7 @@ function updateTerminator(t) {
 
 
 
-document.addEventListener('keydown', event => {
-  if (event.keyCode === 37) { //Left
-    ball.direction.x += -1;
-  } 
-  else if (event.keyCode === 39) { //Right
-    ball.direction.x += 1;
-  } 
-  else if (event.keyCode === 38) { //Up
-    ball.direction.y += 1;
-  } 
-  else if (event.keyCode === 40) { //Down
-    ball.direction.y += -1;
-  }
-});
+
 
 
 
@@ -178,12 +203,21 @@ function animate() {
   ball.direction.x *= ball.brake;
   ball.direction.y *= ball.brake;
   ballPosChannel.push({id:ball.id, xpos:ball.pos.lat, ypos:ball.pos.lng, broadcasting:broadcasting});
+  //localUser.ball.pos.lat += localUser.ball.direction.y * ball.speed;
+  //localUser.ball.pos.lng += localUser.ball.direction.x * ball.speed;
+  //localUser.ball.direction.x *= ball.brake;
+  //localUser.ball.direction.y *= ball.brake;
+  //socket.emit("pos update", {});    //finish that line
 }
 
 function gameBack() {
-  if(myBall) myBall.setLatLng([ball.pos.lat, ball.pos.lng]);
+  if(localLcircle) localLcircle.setLatLng([ball.pos.lat, ball.pos.lng]);
+  //if (localUser.ball != null){
+  //  localUser.Lcircle.setLatLng([localUser.ball.pos.lat, localUser.ball.pos.lng]);
+  //}
   map.setView(new L.LatLng(ball.pos.lat, ball.pos.lng), 8);
-  $("#videoDiv").css({"position": "absolute", "top": canvasHeight/1.5 , "left": yourVideo.width/2, "width":yourVideo.width, "height":yourVideo.height});
+  //map.setView(new L.LatLng(localUser.ball.pos.lat, localUser.ball.pos.lng), 8);
+  $("#videoDiv").css({"position": "absolute", "top": canvasHeight/1.5 , "left": localVideo.width/2, "width":localVideo.width, "height":localVideo.height});
   //update locations of other balls
   for (let i = 0 ; i < arrayofballs.length ; i++){
     arrayofLcircles[i].setLatLng([arrayofballs[i].pos.lat, arrayofballs[i].pos.lng]);
@@ -195,7 +229,7 @@ function gameBack() {
         arrayofLcircles[i].getPopup().getContent().srcObject = arrayofstreams[i];
         arrayofLcircles[i].openPopup();
       }
-    } 
+    }
     else if(arrayofballs[i].broadcasting == 0 && arrayofLcircles[i].getPopup().isOpen()) {
       arrayofLcircles[i].closePopup();
       arrayofLcircles[i].getPopup().getContent().src = "";
@@ -207,7 +241,7 @@ function removeDeadBalls() {
   for (let i=0;i<arrayofpeerconnections.length;i++) {
     if (arrayofpeerconnections[i].iceConnectionState === 'disconnected'){
       if(arrayofpeerconnections.length == arrayofballs.length && arrayofballs.length == arrayofLcircles.length && arrayofLcircles.length == arrayofrunning.length && arrayofrunning.length == arrayofchannelopen.length && arrayofchannelopen.length == connectedusers.length && connectedusers.length == arrayofstreams.length ){
-        arrayofpeerconnections.splice(i,1); 
+        arrayofpeerconnections.splice(i,1);
         arrayofballs.splice(i,1);
         map.removeLayer(arrayofLcircles[i]);
         arrayofLcircles.splice(i,1);
@@ -217,7 +251,7 @@ function removeDeadBalls() {
         connectedusers.splice(i,1);
         i--;
       }
-    } 
+    }
   }
 }
 
@@ -236,7 +270,7 @@ function updateRadioStation(){
   if(nearATower == 0 && radioSource != ""){
     radioSource = "";
     theRadio.src = "";
-  } 
+  }
 }
 
 
@@ -259,7 +293,7 @@ var servers = {'iceServers': [{'urls': 'stun:stun.services.mozilla.com'}, {'urls
 
 function startnow() {
   navigator.mediaDevices.getUserMedia({audio:true, video:true})
-    .then(stream => myStream = stream);
+    .then(stream => localStream = stream);
 
 
   // Announce our arrival to the announcement channel
@@ -333,7 +367,7 @@ function startnow() {
       candidate = candidate.toJSON();
       candidate.type = 'candidate';
       sendSignalChannelMessage(candidate);
-    } 
+    }
     else {
       console.log('All candidates sent');
     }
@@ -367,7 +401,7 @@ function startnow() {
         brake: 0.9, // smaller number stop faster, max 0.99999
         broadcasting: 0,
         id: remote,
-      });                     
+      });
       arrayofLcircles.push(L.circle([0, 0], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map));
       arrayofstreams.push(event.stream);
       var tmpvid = L.DomUtil.create('video');
@@ -377,7 +411,7 @@ function startnow() {
       arrayofLcircles[arrayofLcircles.length-1].bindPopup(tmpvid, {maxWidth: "auto", closeButton: false});
       arrayofchannelopen[arrayofchannelopen.length - 1] = 1;
 
-      if (arrayofchannelopen.length > 1 && arrayofchannelopen[arrayofchannelopen.length - 2] == 0) { 
+      if (arrayofchannelopen.length > 1 && arrayofchannelopen[arrayofchannelopen.length - 2] == 0) {
         arrayofchannelopen.splice(arrayofchannelopen.length - 2, 1);
         arrayofpeerconnections.splice(arrayofpeerconnections.length - 2, 1);
         arrayofrunning.splice(arrayofrunning.length - 2, 1);

@@ -332,13 +332,27 @@ function handleOfferSignal(message) {    // get the offer sender from the messag
   for(let i = 0; i < remoteUsersArray.length ; i++){   // uncomment this.
     if (remoteUsersArray[i].id === sender){
       remoteUsersArray[i].pcIsRunning = true;
-      navigator.mediaDevices.getUserMedia({audio:true, video:true})     // this should not be needed, as we have already captured media when the page was loaded.
-        .then(stream => remoteUsersArray[i].pc.addStream(stream))   // you might need to do this the await way.
-        .then(() => {
-          console.log("setting remote description of user " + sender);
-          remoteUsersArray[i].pc.setRemoteDescription(new RTCSessionDescription(message));
-          })
-        .then(() => remoteUsersArray[i].pc.createAnswer(
+      if (localStream === undefined){
+        navigator.mediaDevices.getUserMedia({audio:true, video:true})     // this should not be needed, as we have already captured media when the page was loaded.
+          .then(stream => remoteUsersArray[i].pc.addStream(stream))   // you might need to do this the await way.
+          .then(() => {
+            console.log("setting remote description of user " + sender);
+            remoteUsersArray[i].pc.setRemoteDescription(new RTCSessionDescription(message));
+            })
+          .then(() => remoteUsersArray[i].pc.createAnswer(
+            function(sessionDescription) {
+              remoteUsersArray[i].pc.setLocalDescription(sessionDescription);
+              console.log("sending an answer to user " + sender);
+              sendSignalChannelMessage(sessionDescription.toJSON(), ball.id, sender);
+            },
+            function(err) {
+              console.error('Could not create offer', err);
+            }
+          ));
+      } else {
+        remoteUsersArray[i].pc.addStream(localStream);
+        remoteUsersArray[i].pc.setRemoteDescription(new RTCSessionDescription(message));
+        remoteUsersArray[i].pc.createAnswer(
           function(sessionDescription) {
             remoteUsersArray[i].pc.setLocalDescription(sessionDescription);
             console.log("sending an answer to user " + sender);
@@ -347,19 +361,20 @@ function handleOfferSignal(message) {    // get the offer sender from the messag
           function(err) {
             console.error('Could not create offer', err);
           }
-        ));
+        );
+      }
     }
   }
 };
 
 // Handle a WebRTC answer response to our offer we gave the remote client
-function handleAnswerSignal(message) { // set the session description only for the remoetUser who sent the answer.
+async function handleAnswerSignal(message) { // set the session description only for the remoetUser who sent the answer.
   var sender = message.sender;
   // console.log("received an answer from user " + sender);
   for(let i = 0; i < remoteUsersArray.length ; i++){   // uncomment this.
     if (remoteUsersArray[i].id === sender){
       // console.log("setting remote description of user " + sender);
-      remoteUsersArray[i].pc.setRemoteDescription(new RTCSessionDescription(message));
+      await remoteUsersArray[i].pc.setRemoteDescription(new RTCSessionDescription(message));
     }
   }
 };
@@ -371,7 +386,12 @@ function handleCandidateSignal(message) {    // move this inside the function wh
   for(let i = 0; i < remoteUsersArray.length ; i++){   // uncomment this.
     if (remoteUsersArray[i].id === sender){
       // console.log("adding ice candidates from user " + sender);
-      remoteUsersArray[i].pc.addIceCandidate(candidate);
+      // if (remoteUsersArray[i].pc == null && remoteUsersArray[i].pc.remoteDescription ==  null) {
+        remoteUsersArray[i].pc.addIceCandidate(candidate);
+      // } else {
+        console.log("Debugging: is pc null? ", remoteUsersArray[i].pc == null);
+        console.log("Debugging: is pc remoteDescription null? ", remoteUsersArray[i].pc.remoteDescription ==  null);
+      // }
     }
   }
 };
@@ -392,19 +412,30 @@ function initiateCallToRemoteUser(remoteUserID) {
     if (remoteUsersArray[i].id === remoteUserID){
       remoteUsersArray[i].pcIsRunning = true;
       // console.log("sending a offer to user " + remoteUserID);
-      navigator.mediaDevices.getUserMedia({audio:true, video:true})   // later, check first if a localStream exists.
-        .then(stream => {
-          localStream = stream;
-          remoteUsersArray[i].pc.addStream(stream);
-        })   // later, get user media only when the spacebar is pressed.
-        .then(() => {
-          remoteUsersArray[i].pc.createOffer(function(sessionDescription) {
-            remoteUsersArray[i].pc.setLocalDescription(sessionDescription);
-            sendSignalChannelMessage(sessionDescription.toJSON(), ball.id, remoteUserID);
-          }, function(err) {
-            console.error('Could not create offer', err);
+      if (localStream === undefined) {
+        console.log("getting user media");
+        navigator.mediaDevices.getUserMedia({audio:true, video:true})   // later, check first if a localStream exists.
+          .then(stream => {
+            localStream = stream;
+            remoteUsersArray[i].pc.addStream(stream);
+          })   // later, get user media only when the spacebar is pressed.
+          .then(() => {
+            remoteUsersArray[i].pc.createOffer(function(sessionDescription) {
+              remoteUsersArray[i].pc.setLocalDescription(sessionDescription);
+              sendSignalChannelMessage(sessionDescription.toJSON(), ball.id, remoteUserID);
+            }, function(err) {
+              console.error('Could not create offer', err);
+            });
           });
+      } else {
+        remoteUsersArray[i].pc.addStream(localStream);
+        remoteUsersArray[i].pc.createOffer(function(sessionDescription) {
+          remoteUsersArray[i].pc.setLocalDescription(sessionDescription);
+          sendSignalChannelMessage(sessionDescription.toJSON(), ball.id, remoteUserID);
+        }, function(err) {
+          console.error('Could not create offer', err);
         });
+      }
     }
   }
 }

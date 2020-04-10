@@ -209,12 +209,18 @@ function gameBack() {
   }
 }
 
-function removeDeadBalls() {
+
+// if (remoteUsersArray[i].pc.iceConnectionState === 'disconnected') {    a ball shall not be deemed dead merely because its ice is disconnected. Make the signout signal work.
+//
+// }
+
+function removeRemoteUserByID(userID){
+  console.log("removing remote user " + userID + " because they have logged out.");
   for (let i = 0; i < remoteUsersArray.length; i++) {   // uncomment this.
-    if (remoteUsersArray[i].pc.iceConnectionState === 'disconnected'){
+    if (remoteUsersArray[i].id === userID){
       map.removeLayer(remoteUsersArray[i].Lcircle);
       remoteUsersArray.splice(i,1);
-      i--;
+      break;
     }
   }
 }
@@ -241,7 +247,7 @@ var FPS = 30;
 setInterval(function() {
   animate();
   gameBack();
-  removeDeadBalls();
+  // removeDeadBalls();    // we remove single user when they sign out now.
   //updateRadioStation();
   updateVolumes();
 }, 1000/FPS);
@@ -295,12 +301,13 @@ function addNewRemoteUserToRemoteUsersArray(remoteUserID){  // uncomment this.
 
 // Announce our arrival to the announcement channel
 function sendAnnounceChannelMessage(type) {   // this basically says, "hey everybody, I am online now."  Upon hearing that, everybody should call you.
-  announceChannel.remove(function() {announceChannel.push({id : ball.id, type: type});});   // type can be either "ping" or "pong". "ping" means "hey, I have just arrived." "pong" means "cool, I am here, too".
+  announceChannel.remove(function() {announceChannel.push({id : ball.id, type: type});});   // type can be either "ping" or "pong" or "signing out". "ping" means "hey, I have just arrived." "pong" means "cool, I am here, too".
 };
 
 // Handle an incoming message on the announcement channel
-function handleAnnounceChannelMessage(snapshot) {   // push a new remote user object to the remoteUsersArray here.
+function handleAnnounceChannelMessage(snapshot) {   // push a new remote user object to the remoteUsersArray here.  Hey, this is like socket.on().
   var message = snapshot.val();
+  console.log("received message: " + String(message));
   // if (message.id != ball.id && (connectedusers.includes(message.id) == false)) {
   if (message.id != ball.id) {
     // remote = message.id; //comment this out
@@ -310,9 +317,12 @@ function handleAnnounceChannelMessage(snapshot) {   // push a new remote user ob
     addNewRemoteUserToRemoteUsersArray(sender);  //uncomment this
     if (message.type === "ping"){
       sendAnnounceChannelMessage("pong");
-    } else {   // newly arrived user is one who calls. Does so after receiving a pong. At this point, the old user has been added to the remoteUsersArray.
+    } else if (message.type === "pong") {   // newly arrived user is one who calls. Does so after receiving a pong. At this point, the old user has been added to the remoteUsersArray.
       initiator = ball.id; // keep this   // consider making this a property of each remoteUser. Would probably be more robust.
       initiateCallToRemoteUser(sender);    //uncomment this. This line should be exectuted strictly after the previous one has finished being executed. Check that it is (that a new user has been added to the array), and add a fix later.
+    } else if (message.type === "signing out") {
+      console.log("remote user " + message.sender + "has left");
+      removeRemoteUserByID(message.id);
     }
   }
 };
@@ -442,4 +452,8 @@ function initiateCallToRemoteUser(remoteUserID) {
 
 window.onload = function(){
   sendAnnounceChannelMessage("ping");
+}
+
+window.onbeforeunload = function(){
+  sendAnnounceChannelMessage("signing out");
 }

@@ -301,7 +301,7 @@ function addNewRemoteUserToRemoteUsersArray(remoteUserID){  // uncomment this.
 
 // Announce our arrival to the announcement channel
 function sendAnnounceChannelMessage(type) {   // this basically says, "hey everybody, I am online now."  Upon hearing that, everybody should call you.
-  announceChannel.remove(function() {announceChannel.push({id : ball.id, type: type});});   // type can be either "ping" or "pong" or "signing out". "ping" means "hey, I have just arrived." "pong" means "cool, I am here, too".
+  announceChannel.remove(function() {announceChannel.push({id : ball.id, type: type});});   //  type can be either "ping" or "pong" or "signing out". "ping" means "hey, I have just arrived." "pong" means "cool, I am here, too".
 };
 
 // Handle an incoming message on the announcement channel

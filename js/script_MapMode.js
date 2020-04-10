@@ -242,7 +242,7 @@ setInterval(function() {
   animate();
   gameBack();
   removeDeadBalls();
-  updateRadioStation();
+  //updateRadioStation();
   updateVolumes();
 }, 1000/FPS);
 

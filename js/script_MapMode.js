@@ -274,29 +274,32 @@ function setUpWebRTCHandlers(remoteUserObject){   // uncomment this.
 }
 
 function addNewRemoteUserToRemoteUsersArray(remoteUserID){  // uncomment this.
-  var newBall = {
-    pos: {lat: 0, lng: 0},   // the location of the remoteUser's ball will be updated elsewhere.
-    direction: {x: 0, y: 0},
-    speed: 0.005,
-    brake: 0.9 // smaller number stop faster, max 0.99999
+  if (checkRemoteUserInArray(remoteUserID) === false) {
+    console.log("adding new remote user with id " + remoteUserID + " to remoteUsersArray");
+    var newBall = {
+      pos: {lat: 0, lng: 0},   // the location of the remoteUser's ball will be updated elsewhere.
+      direction: {x: 0, y: 0},
+      speed: 0.005,
+      brake: 0.9 // smaller number stop faster, max 0.99999
+    }
+    var newLcircle = L.circle([0, 0], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
+    var tmpvid = L.DomUtil.create('video');
+    tmpvid.autoplay = true;
+    tmpvid.height = 100; tmpvid.width = 100;
+    tmpvid.srcObject = null;  // this is set in the onaddstream handler.
+    newLcircle.bindPopup(tmpvid, {maxWidth: "auto", closeButton: false});
+    var newRemoteUser = {
+      id: remoteUserID,
+      ball: newBall,
+      Lcircle: newLcircle,  //Lcircle contains the video element. It is bound to it when the stream is added.
+      pc: new RTCPeerConnection(servers),
+      pcIsRunning: false,
+      isBroadcasting: false,
+      stream: null
+    }
+    setUpWebRTCHandlers(newRemoteUser);
+    remoteUsersArray.push(newRemoteUser);
   }
-  var newLcircle = L.circle([0, 0], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
-  var tmpvid = L.DomUtil.create('video');
-  tmpvid.autoplay = true;
-  tmpvid.height = 100; tmpvid.width = 100;
-  tmpvid.srcObject = null;  // this is set in the onaddstream handler.
-  newLcircle.bindPopup(tmpvid, {maxWidth: "auto", closeButton: false});
-  var newRemoteUser = {
-    id: remoteUserID,
-    ball: newBall,
-    Lcircle: newLcircle,  //Lcircle contains the video element. It is bound to it when the stream is added.
-    pc: new RTCPeerConnection(servers),
-    pcIsRunning: false,
-    isBroadcasting: false,
-    stream: null
-  }
-  setUpWebRTCHandlers(newRemoteUser);
-  remoteUsersArray.push(newRemoteUser);
 }
 
 // Announce our arrival to the announcement channel
@@ -313,8 +316,10 @@ function handleAnnounceChannelMessage(snapshot) {   // push a new remote user ob
     // remote = message.id; //comment this out
     // initiateWebRTCState(); // comment this out
     var sender = message.id;  //uncomment this.
-    console.log("adding new remote user with id " + sender + " to remoteUsersArray");
-    addNewRemoteUserToRemoteUsersArray(sender);  //uncomment this
+    // if (checkRemoteUserInArray(sender) === false) {
+    //   console.log("adding new remote user with id " + sender + " to remoteUsersArray");
+    addNewRemoteUserToRemoteUsersArray(sender);  //uncomment this   /. this is  a bug. It's called on all messages. This is bad because pongs can come from any user. So there are too many pongs.
+    // }
     if (message.type === "ping"){
       sendAnnounceChannelMessage("pong"); // later send the pong only to the user who sent the ping. For now, just check that the user pc is not already running before initiating --- do this check at the beginning of initiateCallToRemoteUser.
     } else if (message.type === "pong") {   // newly arrived user is one who calls. Does so after receiving a pong. At this point, the old user has been added to the remoteUsersArray.
@@ -326,6 +331,15 @@ function handleAnnounceChannelMessage(snapshot) {   // push a new remote user ob
     }
   }
 };
+
+function checkRemoteUserInArray(userID){
+  for (let i = 0; remoteUsersArray.length; i++){
+    if (remoteUsersArray[i] === userID){
+      return true;
+    }
+  }
+  return false;
+}
 
 // Send a message to the remote client via Firebase
 // function sendSignalChannelMessage(message) {   //modify this function to also take a a senderID and a receiver id.
@@ -454,7 +468,7 @@ window.onload = function(){
   sendAnnounceChannelMessage("ping");   // you can't send a ping to a specific user because you don't know who the online users are; you are still feeling out who is online.
 }                                      // but you should send the pong to a specific user.
 
-window.onunload = window.onbeforeunload = function(){
+window.onbeforeunload = function(){
   // close the connections before leaving. More robust this way.
   sendAnnounceChannelMessage("signing out");
   return null;

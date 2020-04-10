@@ -316,7 +316,7 @@ function handleAnnounceChannelMessage(snapshot) {   // push a new remote user ob
     console.log("adding new remote user with id " + sender + " to remoteUsersArray");
     addNewRemoteUserToRemoteUsersArray(sender);  //uncomment this
     if (message.type === "ping"){
-      sendAnnounceChannelMessage("pong");
+      sendAnnounceChannelMessage("pong"); // later send the pong only to the user who sent the ping. For now, just check that the user pc is not already running before initiating --- do this check at the beginning of initiateCallToRemoteUser.
     } else if (message.type === "pong") {   // newly arrived user is one who calls. Does so after receiving a pong. At this point, the old user has been added to the remoteUsersArray.
       initiator = ball.id; // keep this   // consider making this a property of each remoteUser. Would probably be more robust.
       initiateCallToRemoteUser(sender);    //uncomment this. This line should be exectuted strictly after the previous one has finished being executed. Check that it is (that a new user has been added to the array), and add a fix later.
@@ -419,7 +419,7 @@ function handleSignalChannelMessage(snapshot) {   // check that the receiver is 
 
 function initiateCallToRemoteUser(remoteUserID) {
   for(let i = 0; i < remoteUsersArray.length ; i++){   // uncomment this.
-    if (remoteUsersArray[i].id === remoteUserID){
+    if (remoteUsersArray[i].id === remoteUserID && remoteUsersArray[i].pcIsRunning === false){
       remoteUsersArray[i].pcIsRunning = true;
       // console.log("sending a offer to user " + remoteUserID);
       if (localStream === undefined) {
@@ -451,9 +451,11 @@ function initiateCallToRemoteUser(remoteUserID) {
 }
 
 window.onload = function(){
-  sendAnnounceChannelMessage("ping");
-}
+  sendAnnounceChannelMessage("ping");   // you can't send a ping to a specific user because you don't know who the online users are; you are still feeling out who is online.
+}                                      // but you should send the pong to a specific user.
 
-window.onbeforeunload = function(){
+window.onunload = window.onbeforeunload = function(){
+  // close the connections before leaving. More robust this way.
   sendAnnounceChannelMessage("signing out");
+  return null;
 }

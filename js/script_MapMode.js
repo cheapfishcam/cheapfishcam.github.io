@@ -303,8 +303,8 @@ function addNewRemoteUserToRemoteUsersArray(remoteUserID){  // uncomment this.
 }
 
 // Announce our arrival to the announcement channel
-function sendAnnounceChannelMessage(type) {   // this basically says, "hey everybody, I am online now."  Upon hearing that, everybody should call you.
-  announceChannel.remove(function() {announceChannel.push({id : ball.id, type: type});});   //  type can be either "ping" or "pong" or "signing out". "ping" means "hey, I have just arrived." "pong" means "cool, I am here, too".
+function sendAnnounceChannelMessage(type, receiverID) {   // this basically says, "hey everybody, I am online now."  Upon hearing that, everybody should call you.
+  announceChannel.remove(function() {announceChannel.push({id : ball.id, type: type, receiver: receiverID});});   //  type can be either "ping" or "pong" or "signing out". "ping" means "hey, I have just arrived." "pong" means "cool, I am here, too".
 };
 
 // Handle an incoming message on the announcement channel
@@ -312,7 +312,9 @@ function handleAnnounceChannelMessage(snapshot) {   // push a new remote user ob
   var message = snapshot.val();
   console.log("received message: " + String(message));
   // if (message.id != ball.id && (connectedusers.includes(message.id) == false)) {
-  if (message.id != ball.id) {
+  console.log(message.receiver);
+  console.log(message.id != ball.id, message.receiver === undefined, message.receiver === ball.id);
+  if (message.id != ball.id && message.receiver === undefined || message.receiver === ball.id) {
     // remote = message.id; //comment this out
     // initiateWebRTCState(); // comment this out
     var sender = message.id;  //uncomment this.
@@ -321,8 +323,8 @@ function handleAnnounceChannelMessage(snapshot) {   // push a new remote user ob
     addNewRemoteUserToRemoteUsersArray(sender);  //uncomment this   /. this is  a bug. It's called on all messages. This is bad because pongs can come from any user. So there are too many pongs.
     // }
     if (message.type === "ping"){
-      sendAnnounceChannelMessage("pong"); // later send the pong only to the user who sent the ping. For now, just check that the user pc is not already running before initiating --- do this check at the beginning of initiateCallToRemoteUser.
-    } else if (message.type === "pong") {   // newly arrived user is one who calls. Does so after receiving a pong. At this point, the old user has been added to the remoteUsersArray.
+      sendAnnounceChannelMessage("pong", sender); // later send the pong only to the user who sent the ping. For now, just check that the user pc is not already running before initiating --- do this check at the beginning of initiateCallToRemoteUser.
+    } else if (message.type === "pong" ) {   // newly arrived user is one who calls. Does so after receiving a pong. At this point, the old user has been added to the remoteUsersArray.
       initiator = ball.id; // keep this   // consider making this a property of each remoteUser. Would probably be more robust.
       initiateCallToRemoteUser(sender);    //uncomment this. This line should be exectuted strictly after the previous one has finished being executed. Check that it is (that a new user has been added to the array), and add a fix later.
     } else if (message.type === "signing out") {
@@ -465,11 +467,11 @@ function initiateCallToRemoteUser(remoteUserID) {
 }
 
 window.onload = function(){
-  sendAnnounceChannelMessage("ping");   // you can't send a ping to a specific user because you don't know who the online users are; you are still feeling out who is online.
+  sendAnnounceChannelMessage("ping", null);   // you can't send a ping to a specific user because you don't know who the online users are; you are still feeling out who is online.
 }                                      // but you should send the pong to a specific user.
 
 window.onbeforeunload = function(){
   // close the connections before leaving. More robust this way.
-  sendAnnounceChannelMessage("signing out");
+  sendAnnounceChannelMessage("signing out", null);   // null means send it to everyone
   return null;
 }

@@ -314,7 +314,7 @@ function handleAnnounceChannelMessage(snapshot) {   // push a new remote user ob
   // if (message.id != ball.id && (connectedusers.includes(message.id) == false)) {
   console.log(message.receiver);
   console.log(message.id != ball.id, message.receiver === undefined, message.receiver === ball.id);
-  if (message.id != ball.id && message.receiver === "All" || message.receiver === ball.id) {
+  if (message.id != ball.id && message.receiver === "All" || message.id != ball.id && message.receiver === ball.id) {
     // remote = message.id; //comment this out
     // initiateWebRTCState(); // comment this out
     var sender = message.id;  //uncomment this.
@@ -325,7 +325,6 @@ function handleAnnounceChannelMessage(snapshot) {   // push a new remote user ob
     if (message.type === "ping"){
       sendAnnounceChannelMessage("pong", sender); // later send the pong only to the user who sent the ping. For now, just check that the user pc is not already running before initiating --- do this check at the beginning of initiateCallToRemoteUser.
     } else if (message.type === "pong" ) {   // newly arrived user is one who calls. Does so after receiving a pong. At this point, the old user has been added to the remoteUsersArray.
-      initiator = ball.id; // keep this   // consider making this a property of each remoteUser. Would probably be more robust.
       initiateCallToRemoteUser(sender);    //uncomment this. This line should be exectuted strictly after the previous one has finished being executed. Check that it is (that a new user has been added to the array), and add a fix later.
     } else if (message.type === "signing out") {
       console.log("remote user " + message.sender + "has left");
@@ -436,6 +435,7 @@ function handleSignalChannelMessage(snapshot) {   // check that the receiver is 
 function initiateCallToRemoteUser(remoteUserID) {
   for(let i = 0; i < remoteUsersArray.length ; i++){   // uncomment this.
     if (remoteUsersArray[i].id === remoteUserID && remoteUsersArray[i].pcIsRunning === false){
+      initiator = ball.id; // keep this   // consider making this a property of each remoteUser. Would probably be more robust.
       remoteUsersArray[i].pcIsRunning = true;
       // console.log("sending a offer to user " + remoteUserID);
       if (localStream === undefined) {

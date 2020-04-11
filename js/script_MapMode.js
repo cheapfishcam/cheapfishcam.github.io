@@ -314,7 +314,7 @@ function handleAnnounceChannelMessage(snapshot) {   // push a new remote user ob
   // if (message.id != ball.id && (connectedusers.includes(message.id) == false)) {
   console.log(message.receiver);
   console.log(message.id != ball.id, message.receiver === undefined, message.receiver === ball.id);
-  if (message.id != ball.id && message.receiver === undefined || message.receiver === ball.id) {
+  if (message.id != ball.id && message.receiver === "All" || message.receiver === ball.id) {
     // remote = message.id; //comment this out
     // initiateWebRTCState(); // comment this out
     var sender = message.id;  //uncomment this.
@@ -467,11 +467,11 @@ function initiateCallToRemoteUser(remoteUserID) {
 }
 
 window.onload = function(){
-  sendAnnounceChannelMessage("ping", null);   // you can't send a ping to a specific user because you don't know who the online users are; you are still feeling out who is online.
+  sendAnnounceChannelMessage("ping", "All");   // you can't send a ping to a specific user because you don't know who the online users are; you are still feeling out who is online.
 }                                      // but you should send the pong to a specific user.
 
 window.onbeforeunload = function(){
   // close the connections before leaving. More robust this way.
-  sendAnnounceChannelMessage("signing out", null);   // null means send it to everyone
+  sendAnnounceChannelMessage("signing out", "All");   // null means send it to everyone
   return null;
 }

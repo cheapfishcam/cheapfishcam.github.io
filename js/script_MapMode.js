@@ -247,8 +247,8 @@ var FPS = 30;
 setInterval(function() {
   animate();
   gameBack();
-  // removeDeadBalls();    // we remove single user when they sign out now.
-  //updateRadioStation();
+  // removeDeadBalls();    // we remove single user when they sign out now. TODO: it's not working properly.
+  updateRadioStation();
   updateVolumes();
 }, 1000/FPS);
 
@@ -275,30 +275,30 @@ function setUpWebRTCHandlers(remoteUserObject){   // uncomment this.
 
 function addNewRemoteUserToRemoteUsersArray(remoteUserID){  // uncomment this.
   // if (checkRemoteUserInArray(remoteUserID) === false) {    // this caused problems for some reason. But it's an important condition; make it work later.
-    console.log("adding new remote user with id " + remoteUserID + " to remoteUsersArray");
-    var newBall = {
-      pos: {lat: 0, lng: 0},   // the location of the remoteUser's ball will be updated elsewhere.
-      direction: {x: 0, y: 0},
-      speed: 0.005,
-      brake: 0.9 // smaller number stop faster, max 0.99999
-    }
-    var newLcircle = L.circle([0, 0], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
-    var tmpvid = L.DomUtil.create('video');
-    tmpvid.autoplay = true;
-    tmpvid.height = 100; tmpvid.width = 100;
-    tmpvid.srcObject = null;  // this is set in the onaddstream handler.
-    newLcircle.bindPopup(tmpvid, {maxWidth: "auto", closeButton: false});
-    var newRemoteUser = {
-      id: remoteUserID,
-      ball: newBall,
-      Lcircle: newLcircle,  //Lcircle contains the video element. It is bound to it when the stream is added.
-      pc: new RTCPeerConnection(servers),
-      pcIsRunning: false,
-      isBroadcasting: false,
-      stream: null
-    }
-    setUpWebRTCHandlers(newRemoteUser);
-    remoteUsersArray.push(newRemoteUser);
+  console.log("adding new remote user with id " + remoteUserID + " to remoteUsersArray");
+  var newBall = {
+    pos: {lat: 0, lng: 0},   // the location of the remoteUser's ball will be updated elsewhere.
+    direction: {x: 0, y: 0},
+    speed: 0.005,
+    brake: 0.9 // smaller number stop faster, max 0.99999
+  }
+  var newLcircle = L.circle([0, 0], {radius: 200, color: "red", fillOpacity: 1.0}).addTo(map);
+  var tmpvid = L.DomUtil.create('video');
+  tmpvid.autoplay = true;
+  tmpvid.height = 100; tmpvid.width = 100;
+  tmpvid.srcObject = null;  // this is set in the onaddstream handler.
+  newLcircle.bindPopup(tmpvid, {maxWidth: "auto", closeButton: false});
+  var newRemoteUser = {
+    id: remoteUserID,
+    ball: newBall,
+    Lcircle: newLcircle,  //Lcircle contains the video element. It is bound to it when the stream is added.
+    pc: new RTCPeerConnection(servers),
+    pcIsRunning: false,
+    isBroadcasting: false,
+    stream: null
+  }
+  setUpWebRTCHandlers(newRemoteUser);
+  remoteUsersArray.push(newRemoteUser);
   // }
 }
 
@@ -310,11 +310,9 @@ function sendAnnounceChannelMessage(type, receiverID) {   // this basically says
 // Handle an incoming message on the announcement channel
 function handleAnnounceChannelMessage(snapshot) {   // push a new remote user object to the remoteUsersArray here.  Hey, this is like socket.on().
   var message = snapshot.val();
-  console.log("received message: " + message.type + " from user " + message.id + " sent to " + message.receiver);
   // if (message.id != ball.id && (connectedusers.includes(message.id) == false)) {
-  console.log(message.receiver);
-  console.log(message.id != ball.id, message.receiver === "All", message.receiver === ball.id);
   if (message.id != ball.id && message.receiver === "All" || message.id != ball.id && message.receiver === ball.id) {
+    console.log("received message: " + message.type + " from user " + message.id + " sent to " + message.receiver);
     // remote = message.id; //comment this out
     // initiateWebRTCState(); // comment this out
     var sender = message.id;  //uncomment this.

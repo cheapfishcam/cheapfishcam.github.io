@@ -274,7 +274,7 @@ function setUpWebRTCHandlers(remoteUserObject){   // uncomment this.
 }
 
 function addNewRemoteUserToRemoteUsersArray(remoteUserID){  // uncomment this.
-  if (checkRemoteUserInArray(remoteUserID) === false) {
+  // if (checkRemoteUserInArray(remoteUserID) === false) {    // this caused problems for some reason. But it's an important condition; make it work later.
     console.log("adding new remote user with id " + remoteUserID + " to remoteUsersArray");
     var newBall = {
       pos: {lat: 0, lng: 0},   // the location of the remoteUser's ball will be updated elsewhere.
@@ -299,7 +299,7 @@ function addNewRemoteUserToRemoteUsersArray(remoteUserID){  // uncomment this.
     }
     setUpWebRTCHandlers(newRemoteUser);
     remoteUsersArray.push(newRemoteUser);
-  }
+  // }
 }
 
 // Announce our arrival to the announcement channel
@@ -310,10 +310,10 @@ function sendAnnounceChannelMessage(type, receiverID) {   // this basically says
 // Handle an incoming message on the announcement channel
 function handleAnnounceChannelMessage(snapshot) {   // push a new remote user object to the remoteUsersArray here.  Hey, this is like socket.on().
   var message = snapshot.val();
-  console.log("received message: " + String(message));
+  console.log("received message: " + message.type + " from user " + message.id + " sent to " + message.receiver);
   // if (message.id != ball.id && (connectedusers.includes(message.id) == false)) {
   console.log(message.receiver);
-  console.log(message.id != ball.id, message.receiver === undefined, message.receiver === ball.id);
+  console.log(message.id != ball.id, message.receiver === "All", message.receiver === ball.id);
   if (message.id != ball.id && message.receiver === "All" || message.id != ball.id && message.receiver === ball.id) {
     // remote = message.id; //comment this out
     // initiateWebRTCState(); // comment this out
@@ -333,14 +333,14 @@ function handleAnnounceChannelMessage(snapshot) {   // push a new remote user ob
   }
 };
 
-function checkRemoteUserInArray(userID){
-  for (let i = 0; remoteUsersArray.length; i++){
-    if (remoteUsersArray[i] === userID){
-      return true;
-    }
-  }
-  return false;
-}
+// function checkRemoteUserInArray(userID){
+//   for (let i = 0; remoteUsersArray.length; i++){
+//     if (remoteUsersArray[i] === userID){
+//       return true;
+//     }
+//   }
+//   return false;
+// }
 
 // Send a message to the remote client via Firebase
 // function sendSignalChannelMessage(message) {   //modify this function to also take a a senderID and a receiver id.
